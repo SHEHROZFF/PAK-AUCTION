@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Featured Auctions Setup - Admin Utility</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .container { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .auction-card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; }
+        .featured { border-color: #ffd700; background: #fffbf0; }
+        .controls { margin: 10px 0; }
+        button { padding: 10px 15px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .status { padding: 5px 10px; border-radius: 4px; font-size: 12px; }
+        .status.active { background: #d4edda; color: #155724; }
+        .status.inactive { background: #f8d7da; color: #721c24; }
+        .status.featured { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Featured Auctions Setup - Admin Utility</h1>
+    <p>Use this tool to mark auctions as featured for testing the homepage featured section.</p>
+
+    <div class="container">
+        <h2>Quick Actions</h2>
+        <button class="btn-success" onclick="makeFirstThreeFeatured()">✨ Make First 3 Auctions Featured</button>
+        <button class="btn-warning" onclick="clearAllFeatured()">🔄 Clear All Featured Status</button>
+        <button class="btn-primary" onclick="loadAuctions()">🔄 Refresh Auctions</button>
+    </div>
+
+    <div class="container">
+        <h2>📊 Auction Status Overview</h2>
+        <div id="overview">Loading...</div>
+    </div>
+
+    <div class="container">
+        <h2>🎪 All Auctions</h2>
+        <div id="auctions-list">Loading auctions...</div>
+    </div>
+
+    <script>
+        const baseURL = 'http://localhost:5000/api';
+        let allAuctions = [];
+
+        async function loadAuctions() {
+            try {
+                const response = await fetch(`${baseURL}/auctions?limit=50`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allAuctions = data.data.auctions || [];
+                    renderAuctions();
+                    updateOverview();
+                } else {
+                    document.getElementById('auctions-list').innerHTML = '❌ Failed to load auctions';
+                }
+            } catch (error) {
+                console.error('Error loading auctions:', error);
+                document.getElementById('auctions-list').innerHTML = '❌ Network error loading auctions';
+            }
+        }
+
+        function updateOverview() {
+            const total = allAuctions.length;
+            const featured = allAuctions.filter(a => a.isFeatured).length;
+            const active = allAuctions.filter(a => a.status === 'ACTIVE').length;
+            const activeFeatured = allAuctions.filter(a => a.isFeatured && a.status === 'ACTIVE').length;
+
+            document.getElementById('overview').innerHTML = `
+                <p><strong>Total Auctions:</strong> ${total}</p>
+                <p><strong>Featured Auctions:</strong> ${featured}</p>
+                <p><strong>Active Auctions:</strong> ${active}</p>
+                <p><strong>Active + Featured:</strong> ${activeFeatured} (These will appear on homepage)</p>
+                ${activeFeatured === 0 ? '<p style="color: red;">⚠️ No active featured auctions - homepage will show empty state!</p>' : ''}
+            `;
+        }
+
+        function renderAuctions() {
+            const container = document.getElementById('auctions-list');
+            
+            if (allAuctions.length === 0) {
+                container.innerHTML = '❌ No auctions found';
+                return;
+            }
+
+            container.innerHTML = allAuctions.map(auction => `
+                <div class="auction-card ${auction.isFeatured ? 'featured' : ''}">
+                    <h3>${auction.title}</h3>
+                    <p><strong>ID:</strong> ${auction._id}</p>
+                    <p><strong>Current Bid:</strong> $${auction.currentBid || auction.basePrice}</p>
+                    <p><strong>End Time:</strong> ${new Date(auction.endTime).toLocaleString()}</p>
+                    
+                    <div class="controls">
+                        <span class="status ${auction.status.toLowerCase()}">${auction.status}</span>
+                        <span class="status ${auction.isActive ? 'active' : 'inactive'}">${auction.isActive ? 'ACTIVE' : 'INACTIVE'}</span>
+                        <span class="status ${auction.isFeatured ? 'featured' : ''}">${auction.isFeatured ? 'FEATURED' : 'NOT FEATURED'}</span>
+                    </div>
+                    
+                    <div class="controls">
+                        ${auction.isFeatured 
+                            ? `<button class="btn-danger" onclick="toggleFeatured('${auction._id}', false)">❌ Remove Featured</button>`
+                            : `<button class="btn-success" onclick="toggleFeatured('${auction._id}', true)">⭐ Make Featured</button>`
+                        }
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function toggleFeatured(auctionId, makeFeatured) {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    alert('Please login to admin panel first');
+                    return;
+                }
+
+                const response = await fetch(`${baseURL}/auctions/${auctionId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ isFeatured: makeFeatured })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log(`✅ Successfully ${makeFeatured ? 'featured' : 'unfeatured'} auction`);
+                    await loadAuctions(); // Reload to show changes
+                } else {
+                    alert(`Failed: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error updating auction:', error);
+                alert('Network error updating auction');
+            }
+        }
+
+        async function makeFirstThreeFeatured() {
+            const activeAuctions = allAuctions.filter(a => a.status === 'ACTIVE').slice(0, 3);
+            
+            if (activeAuctions.length === 0) {
+                alert('No active auctions found to make featured');
+                return;
+            }
+
+            for (const auction of activeAuctions) {
+                await toggleFeatured(auction._id, true);
+            }
+            
+            alert(`✅ Made ${activeAuctions.length} auctions featured!`);
+        }
+
+        async function clearAllFeatured() {
+            const featuredAuctions = allAuctions.filter(a => a.isFeatured);
+            
+            if (featuredAuctions.length === 0) {
+                alert('No featured auctions to clear');
+                return;
+            }
+
+            for (const auction of featuredAuctions) {
+                await toggleFeatured(auction._id, false);
+            }
+            
+            alert(`✅ Cleared featured status from ${featuredAuctions.length} auctions!`);
+        }
+
+        // Load auctions on page load
+        loadAuctions();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1009 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PakistanAuction - Premium Auction Platform</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+              secondary: {
+                50: "#fdf4ff",
+                100: "#fae8ff",
+                200: "#f5d0fe",
+                300: "#f0abfc",
+                400: "#e879f9",
+                500: "#d946ef",
+                600: "#c026d3",
+                700: "#a21caf",
+                800: "#86198f",
+                900: "#701a75",
+              },
+            },
+            animation: {
+              "bounce-slow": "bounce 2s infinite",
+            },
+            fontFamily: {
+              poppins: ["Poppins", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/css">
+      body {
+        font-family: "Poppins", sans-serif;
+      }
+      @keyframes slide-in-left {
+        0% {
+          transform: translateX(-100px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slide-in-right {
+        0% {
+          transform: translateX(100px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      #bid.animate {
+        animation: slide-in-left 1s ease-out forwards;
+      }
+
+      #luxe.animate {
+        animation: slide-in-right 1s ease-out forwards;
+        animation-delay: 0.2s;
+      }
+
+      .dropdown:hover > .dropdown-menu,
+      .dropdown-menu:hover {
+        display: block;
+      }
+
+      /* 3. Mobile menu slides in from left */
+      #mobile-menu {
+        @apply fixed top-0 left-0 h-full w-64 bg-white
+         transform -translate-x-full transition-transform
+         duration-300 ease-in-out z-50;
+      }
+      #mobile-menu.open {
+        @apply translate-x-0;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Loader -->
+    <div
+      id="loader"
+      class="fixed inset-0 bg-gray-200 z-50 flex items-center justify-center transition-opacity duration-700"
+    >
+      <div
+        class="relative text-center flex text-2xl md:text-7xl font-bold text-gray-800"
+      >
+        <span id="bid" class="absolute right-0 opacity-0">Pak</span>
+        <span id="luxe" class="absolute left-0 opacity-0 text-primary-600"
+          >Auction</span
+        >
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-10">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+          <!-- Logo -->
+          <a href="index.html" class="flex items-center">
+            <i class="fas fa-gavel text-primary-600 text-3xl mr-2"></i>
+            <span class="text-2xl font-bold text-gray-800">
+              Pak<span class="text-primary-600">Auction</span>
+            </span>
+          </a>
+
+          <!-- Navigation & Search (Desktop) -->
+          <div class="hidden md:flex items-center space-x-6">
+            <!-- Nav Links -->
+            <nav class="flex items-center space-x-6">
+              <a
+                href="index.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >Home</a
+              >
+              <!-- Products Dropdown -->
+              <div class="dropdown relative">
+                <button
+                  class="flex items-center text-gray-700 hover:text-primary-600 font-medium"
+                >
+                  Products <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                </button>
+                <div
+                  class="dropdown-menu absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block z-50"
+                >
+                  <div class="py-1">
+                    <a
+                      href="products.html?category=computers"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Computers</a
+                    >
+                    <a
+                      href="products.html?category=antiques"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Antiques</a
+                    >
+                    <a
+                      href="products.html?category=dvd"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >DVD</a
+                    >
+                    <a
+                      href="products.html?category=retro-games"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Retro Games</a
+                    >
+                    <a
+                      href="products.html?category=phones"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Phones</a
+                    >
+                    <a
+                      href="products.html?category=art"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Art</a
+                    >
+                  </div>
+                </div>
+              </div>
+              <a
+                href="how-it-works.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >How It Works</a
+              >
+              <a
+                href="about.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >About</a
+              >
+              <a
+                href="contact.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >Contact</a
+              >
+            </nav>
+
+            <!-- 1. Search – flip to expand on the left -->
+            <div class="relative group pr-4">
+              <button class="p-2 focus:outline-none">
+                <i
+                  class="fas fa-search text-gray-500 group-hover:text-primary-600 transition-colors duration-300"
+                ></i>
+              </button>
+              <input
+                type="text"
+                placeholder="Search auctions..."
+                class="absolute left-0 top-1/2 transform -translate-y-1/2 w-0 opacity-0 group-hover:opacity-100 group-hover:w-48 focus:opacity-100 focus:w-48 transition-all duration-300 ease-out rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent px-4 py-2"
+              />
+            </div>
+          </div>
+
+          <!-- Auth Buttons -->
+          <div class="hidden md:flex items-center space-x-4">
+            <!-- When NOT authenticated -->
+            <div id="auth-buttons" class="flex items-center space-x-4">
+            <a
+              href="login.html"
+              class="text-gray-700 hover:text-primary-600 font-medium"
+              >Login</a
+            >
+            <a href="sell-product.html" class="sell-your-product_Navbar">
+              <span class="sell-your-product_Navbar-text-container">
+                <span class="sell-your-product_Navbar-text">Sell Product</span>
+              </span>
+            </a>
+            </div>
+
+            <!-- When authenticated -->
+            <div id="user-menu" class="hidden items-center space-x-4">
+              <a href="sell-product.html" class="sell-your-product_Navbar">
+                <span class="sell-your-product_Navbar-text-container">
+                  <span class="sell-your-product_Navbar-text">Sell Product</span>
+                </span>
+              </a>
+              
+              <!-- User Dropdown -->
+              <div class="dropdown relative">
+                <button
+                  class="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium"
+                >
+                  <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
+                    <span id="user-avatar">U</span>
+                  </div>
+                  <span id="user-display-name">User</span>
+                  <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div
+                  class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block z-50"
+                >
+                  <div class="py-1">
+                    <div class="px-4 py-2 border-b border-gray-100">
+                      <p class="text-sm font-medium text-gray-900" id="user-menu-name">User Name</p>
+                      <p class="text-sm text-gray-500" id="user-menu-email">user@example.com</p>
+                    </div>
+                    <a
+                      href="dashboard.html"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 font-medium"
+                      ><i class="fas fa-tachometer-alt mr-2"></i>Dashboard</a
+                    >
+                    <a
+                      href="#"
+                      onclick="openWatchlistModal()"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      ><i class="fas fa-heart mr-2"></i>Watchlist</a
+                    >
+                    <a
+                      href="sell-product.html"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      ><i class="fas fa-plus mr-2"></i>Sell Item</a
+                    >
+                    <a
+                      href="#"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      ><i class="fas fa-cog mr-2"></i>Settings</a
+                    >
+                    <div class="border-t border-gray-100"></div>
+                    <button
+                      id="logout-btn"
+                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                    >
+                      <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Menu Button -->
+          <button
+            id="mobile-menu-button"
+            class="md:hidden text-gray-700 focus:outline-none"
+          >
+            <i class="fas fa-bars text-2xl"></i>
+          </button>
+        </div>
+
+        <!-- Mobile Search (unchanged) -->
+        <div class="md:hidden pb-4">
+          <form class="relative">
+            <input
+              type="text"
+              placeholder="Search for auctions..."
+              class="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <button
+              type="submit"
+              class="absolute right-0 top-0 mt-2 mr-4 text-gray-500 hover:text-primary-600"
+            >
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        class="md:hidden fixed inset-y-0 left-0 w-64 bg-white transform -translate-x-full transition-transform duration-300 ease-in-out z-40 pt-16"
+        id="mobile-menu"
+      >
+        <div class="container mx-auto px-4 py-2">
+          <nav class="flex flex-col space-y-3 py-3">
+            <a
+              href="index.html"
+              class="text-gray-700 hover:text-primary-600 font-medium py-2"
+              >Home</a
+            >
+            <div class="relative">
+              <button
+                class="flex justify-between w-full text-gray-700 hover:text-primary-600 font-medium mobile-dropdown-button py-2"
+              >
+                Products <i class="fas fa-chevron-down text-xs"></i>
+              </button>
+              <div
+                class="hidden bg-gray-50 rounded-md mt-1 py-2 mobile-dropdown-menu"
+              >
+                <a
+                  href="products.html?category=computers"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Computers</a
+                >
+                <a
+                  href="products.html?category=antiques"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Antiques</a
+                >
+                <a
+                  href="products.html?category=dvd"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >DVD</a
+                >
+                <a
+                  href="products.html?category=retro-games"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Retro Games</a
+                >
+                <a
+                  href="products.html?category=phones"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Phones</a
+                >
+                <a
+                  href="products.html?category=art"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Art</a
+                >
+              </div>
+            </div>
+            <a
+              href="how-it-works.html"
+              class="text-gray-700 hover:text-primary-600 font-medium py-2"
+              >How It Works</a
+            >
+            <a
+              href="about.html"
+              class="text-gray-700 hover:text-primary-600 font-medium py-2"
+              >About</a
+            >
+            <a
+              href="contact.html"
+              class="text-gray-700 hover:text-primary-600 font-medium py-2"
+              >Contact</a
+            >
+            
+            <!-- Mobile Auth Section -->
+            <div id="mobile-auth-buttons" class="flex space-x-4 pt-2">
+              <a
+                href="login.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >Login</a
+              >
+              <a
+                href="register.html"
+                class="bg-primary-600 text-white px-4 py-2 rounded-full hover:bg-primary-700 transition duration-300"
+                >Register</a
+              >
+            </div>
+
+            <!-- Mobile User Menu (when authenticated) -->
+            <div id="mobile-user-menu" class="hidden pt-2 border-t border-gray-200">
+              <div class="flex items-center space-x-3 py-3">
+                <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
+                  <span id="mobile-user-avatar">U</span>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-900" id="mobile-user-name">User Name</p>
+                  <p class="text-sm text-gray-500" id="mobile-user-email">user@example.com</p>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <a href="dashboard.html" class="block py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </a>
+                <a href="#" onclick="openWatchlistModal()" class="block py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-heart mr-2"></i>Watchlist
+                </a>
+                <a href="sell-product.html" class="block py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-plus mr-2"></i>Sell Item
+                </a>
+                <button id="mobile-logout-btn" class="block w-full text-left py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="bg-white border-b">
+      <div class="container mx-auto px-4 py-3">
+        <div class="flex items-center text-sm">
+          <a href="index.html" class="text-gray-500 hover:text-primary-600"
+            >Home</a
+          >
+          <span class="mx-2 text-gray-400">/</span>
+          <a href="products.html" class="text-gray-500 hover:text-primary-600"
+            >Products</a
+          >
+          <span class="mx-2 text-gray-400">/</span>
+          <span class="text-gray-700 font-medium" id="breadcrumb-title"
+            >Loading...</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="page-loading" class="py-20">
+      <div class="container mx-auto px-4 text-center">
+        <div class="inline-flex items-center space-x-4">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <span class="text-gray-600">Loading auction details...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="page-error" class="py-20 hidden">
+      <div class="container mx-auto px-4 text-center">
+        <div class="text-gray-400 mb-4">
+          <i class="fas fa-exclamation-triangle text-6xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">Auction Not Found</h3>
+        <p class="text-gray-500 mb-6">The auction you're looking for doesn't exist or has been removed.</p>
+        <a
+          href="products.html"
+          class="inline-flex items-center bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition duration-300"
+        >
+          Browse All Auctions
+          <i class="fas fa-arrow-right ml-2"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Product Detail -->
+    <section id="product-detail" class="py-12 hidden">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Product Images -->
+          <div>
+            <div class="bg-white rounded-lg overflow-hidden shadow-md mb-4">
+              <img
+                src=""
+                alt="Product"
+                id="main-image"
+                class="w-full h-auto"
+              />
+            </div>
+            <div id="image-gallery" class="grid grid-cols-4 gap-4">
+              <!-- Thumbnails will be populated dynamically -->
+            </div>
+            
+            <!-- Product Description -->
+            <div class="grid grid-cols-1 gap-8 mt-8">
+              <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                  <h2 class="text-2xl font-bold mb-6">Product Description</h2>
+                  <div id="product-description" class="prose max-w-none">
+                    <!-- Description will be populated dynamically -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Info -->
+          <div>
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2" id="product-name">
+                  <!-- Product name will be populated -->
+                </h1>
+                <div class="flex items-center mb-4">
+                  <span class="bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded mr-3" id="product-category">
+                    <!-- Category will be populated -->
+                  </span>
+                  <span class="text-gray-500 flex items-center">
+                    <i class="fas fa-eye mr-1"></i> <span id="view-count">0</span> views
+                  </span>
+                </div>
+              </div>
+              <div class="bg-red-100 text-red-800 px-3 py-1 rounded-full flex items-center">
+                <i class="fas fa-clock mr-1"></i>
+                <span id="countdown-timer">Loading...</span>
+              </div>
+            </div>
+
+            <!-- Auction Info -->
+            <div class="border-t border-b border-gray-200 py-6 mb-6">
+              <div class="flex justify-between items-center mb-4">
+                <div>
+                  <p class="text-gray-500 text-sm">Current Bid</p>
+                  <p class="text-3xl font-bold text-gray-800" id="current-bid">
+                    --
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="text-gray-500 text-sm">Base Price</p>
+                  <p class="text-xl font-semibold text-gray-700" id="base-price">
+                    --
+                  </p>
+                </div>
+              </div>
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-gray-500 text-sm">Bid Increment</p>
+                  <p class="text-lg font-medium text-gray-800" id="bid-increment">--</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-gray-500 text-sm">Entry Fee (10%)</p>
+                  <p class="text-lg font-medium text-gray-800" id="entry-fee">--</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bidding Section -->
+            <div class="mb-8">
+              <!-- Not authenticated -->
+              <div id="not-authenticated-section" class="mb-6 hidden">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div class="flex items-start">
+                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                    <div>
+                      <h3 class="font-semibold text-blue-800 mb-1">Login Required</h3>
+                      <p class="text-blue-700">Please login to participate in this auction.</p>
+                    </div>
+                  </div>
+                </div>
+                <a href="login.html" class="w-full bg-primary-600 text-white py-3 rounded-md hover:bg-primary-700 transition duration-300 flex items-center justify-center">
+                  <i class="fas fa-sign-in-alt mr-2"></i>
+                  Login to Bid
+                </a>
+              </div>
+
+              <!-- Entry fee not paid -->
+              <div id="not-paid-section" class="mb-6 hidden">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                  <div class="flex items-start">
+                    <i class="fas fa-info-circle text-yellow-500 mt-1 mr-3"></i>
+                    <div>
+                      <h3 class="font-semibold text-yellow-800 mb-1">Pay Entry Fee to Bid</h3>
+                      <p class="text-yellow-700">To participate in this auction, you need to pay a 10% entry fee of the base price.</p>
+                    </div>
+                  </div>
+                </div>
+                <button id="pay-fee-btn" class="w-full bg-primary-600 text-white py-3 rounded-md hover:bg-primary-700 transition duration-300 flex items-center justify-center">
+                  <i class="fas fa-credit-card mr-2"></i>
+                  Pay Entry Fee (<span id="fee-amount">--</span>)
+                </button>
+              </div>
+
+              <!-- Can bid -->
+              <div id="can-bid-section" class="hidden">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <div class="flex items-start">
+                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                    <div>
+                      <h3 class="font-semibold text-green-800 mb-1">Entry Fee Paid</h3>
+                      <p class="text-green-700">You can now place bids on this auction.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex mb-4">
+                  <div class="flex-grow">
+                    <input
+                      type="number"
+                      id="bid-amount"
+                      class="w-full border border-gray-300 rounded-l-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="Enter bid amount"
+                    />
+                  </div>
+                  <button
+                    id="place-bid-btn"
+                    class="bg-primary-600 text-white px-6 py-3 rounded-r-md hover:bg-primary-700 transition duration-300"
+                  >
+                    Place Bid
+                  </button>
+                </div>
+                <p class="text-sm text-gray-500 mb-2">
+                  Minimum bid: $<span id="min-bid">--</span>
+                </p>
+              </div>
+
+              <!-- Auction ended -->
+              <div id="auction-ended-section" class="hidden">
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div class="flex items-start">
+                    <i class="fas fa-flag-checkered text-gray-500 mt-1 mr-3"></i>
+                    <div>
+                      <h3 class="font-semibold text-gray-800 mb-1">Auction Ended</h3>
+                      <p class="text-gray-700">This auction has ended.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Watchlist Button -->
+              <div class="mt-4">
+                <button id="watchlist-btn" class="w-full bg-gray-100 text-gray-700 py-3 rounded-md hover:bg-gray-200 transition duration-300 flex items-center justify-center hidden">
+                  <i class="fas fa-heart mr-2"></i>
+                  <span id="watchlist-text">Add to Watchlist</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Bid History -->
+            <div class="grid grid-cols-1 gap-8 py-6">
+              <div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                  <h2 class="text-2xl font-bold mb-6">Bid History</h2>
+                  
+                  <!-- Loading state -->
+                  <div id="bid-history-loading" class="text-center py-8">
+                    <div class="inline-flex items-center space-x-4">
+                      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+                      <span class="text-gray-600">Loading bid history...</span>
+                    </div>
+                  </div>
+
+                  <!-- No bids state -->
+                  <div id="no-bids-message" class="text-center py-8 hidden">
+                    <i class="fas fa-gavel text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">Be the first one to bid</p>
+                  </div>
+
+                  <!-- Bid history list -->
+                  <div id="bid-history-list" class="space-y-4 hidden">
+                    <!-- Bids will be populated dynamically -->
+                  </div>
+                </div>
+              </div>
+            </div>
+ 
+            <!-- Share Buttons -->
+            <div class="flex space-x-4">
+              <button
+                class="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300 flex items-center justify-center"
+              >
+                <i class="fab fa-facebook-f mr-2"></i>
+                Share
+              </button>
+              <button
+                class="flex-1 bg-blue-400 text-white py-2 rounded-md hover:bg-blue-500 transition duration-300 flex items-center justify-center"
+              >
+                <i class="fab fa-twitter mr-2"></i>
+                Tweet
+              </button>
+              <button
+                class="flex-1 bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition duration-300 flex items-center justify-center"
+              >
+                <i class="fab fa-whatsapp mr-2"></i>
+                Share
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Related Auctions -->
+        <div class="mt-16">
+          <h2 class="text-2xl font-bold mb-8">Related Auctions</h2>
+          
+          <!-- Loading state -->
+          <div id="related-loading" class="text-center py-8">
+            <div class="inline-flex items-center space-x-4">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+              <span class="text-gray-600">Loading related auctions...</span>
+            </div>
+          </div>
+
+          <!-- Related auctions grid -->
+          <div id="related-auctions" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 hidden">
+            <!-- Related items will be populated dynamically -->
+          </div>
+
+          <!-- No related auctions -->
+          <div id="no-related" class="text-center py-8 hidden">
+            <p class="text-gray-500">No related auctions found.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white pt-16 pb-8">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          <!-- Company Info -->
+          <div>
+            <div class="flex items-center space-x-2 mb-6">
+              <i class="fas fa-gavel text-primary-400 text-3xl"></i>
+              <span class="text-2xl font-bold"
+                >Pak<span class="text-primary-400">Auction</span></span
+              >
+            </div>
+            <p class="text-gray-400 mb-6">
+              The premier online auction platform for unique and valuable items.
+            </p>
+            <div class="flex space-x-4">
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+              >
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+              >
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+              >
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+              >
+                <i class="fab fa-linkedin-in"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Quick Links -->
+          <div>
+            <h3 class="text-lg font-semibold mb-6">Quick Links</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="index.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Auctions</a
+                >
+              </li>
+              <li>
+                <a
+                  href="how-it-works.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >How It Works</a
+                >
+              </li>
+              <li>
+                <a
+                  href="about.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >About Us</a
+                >
+              </li>
+              <li>
+                <a
+                  href="contact.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Categories -->
+          <div>
+            <h3 class="text-lg font-semibold mb-6">Categories</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="products.html?category=computers"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Computers</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html?category=antiques"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Antiques</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html?category=retro-games"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Retro Games</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html?category=phones"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Phones</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html?category=art"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Art</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Contact -->
+          <div>
+            <h3 class="text-lg font-semibold mb-6">Contact Us</h3>
+            <ul class="space-y-3">
+              <li class="flex items-start">
+                <i class="fas fa-map-marker-alt mt-1 mr-3 text-gray-400"></i>
+                <span class="text-gray-400"
+                  >123 Auction St, New York, NY 10001</span
+                >
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-phone-alt mr-3 text-gray-400"></i>
+                <span class="text-gray-400">+1 (555) 123-4567</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-envelope mr-3 text-gray-400"></i>
+                <span class="text-gray-400">info@PakistanAuction.com</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-700 pt-8">
+          <div class="flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-400 mb-4 md:mb-0">
+              &copy; 2025 PakistanAuction. All rights reserved.
+            </p>
+            <div class="flex space-x-6">
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+                >Privacy Policy</a
+              >
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+                >Terms of Service</a
+              >
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+                >Cookie Policy</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Loader
+      window.addEventListener("load", () => {
+        // Trigger text animations
+        document.getElementById("bid").classList.add("animate");
+        document.getElementById("luxe").classList.add("animate");
+
+        // Optional delay before fading out
+        setTimeout(() => {
+          const loader = document.getElementById("loader");
+          loader.classList.add("opacity-0");
+          setTimeout(() => {
+            loader.style.display = "none";
+          }, 700); // match fade transition
+        }, 2000); // time to let animation play
+      });
+
+      // Mobile Menu Toggle
+      document
+        .getElementById("mobile-menu-button")
+        .addEventListener("click", function () {
+          const mobileMenu = document.getElementById("mobile-menu");
+          document
+            .getElementById("mobile-menu-button")
+            .addEventListener("click", () => {
+              mobileMenu.classList.toggle("translate-x-0");
+            });
+        });
+
+      // Mobile Dropdown Toggles
+      document.querySelectorAll(".mobile-dropdown-button").forEach((button) => {
+        button.addEventListener("click", function () {
+          const dropdownMenu = this.nextElementSibling;
+          dropdownMenu.classList.toggle("hidden");
+        });
+      });
+      // 4. Toggle mobile drawer
+      document
+        .getElementById("mobile-menu-button")
+        .addEventListener("click", () => {
+          document.getElementById("mobile-menu").classList.toggle("open");
+        });
+
+      // Simple JavaScript for animations (if needed)
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add scroll animations or other interactive elements here
+        const cards = document.querySelectorAll(".card-hover");
+
+        // Add scroll reveal animation (simple version)
+        window.addEventListener("scroll", function () {
+          cards.forEach((card) => {
+            const cardTop = card.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+
+            if (cardTop < windowHeight - 100) {
+              card.style.opacity = "1";
+              card.style.transform = "translateY(0)";
+            }
+          });
+        });
+
+        // Initialize cards
+        cards.forEach((card) => {
+          card.style.opacity = "0";
+          card.style.transform = "translateY(20px)";
+          card.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+        });
+
+        // Trigger initial scroll check
+        window.dispatchEvent(new Event("scroll"));
+      });
+
+      // Helper function for image gallery (used by product-detail.js)
+      function changeMainImage(src, thumbnailEl) {
+        document.getElementById('main-image').src = src;
+        
+        // Update active thumbnail
+        document.querySelectorAll('.image-gallery-thumb').forEach(thumb => {
+          thumb.classList.remove('active');
+        });
+        if (thumbnailEl) {
+          thumbnailEl.classList.add('active');
+        }
+      }
+    </script>
+    <!-- Stripe JavaScript Library -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <!-- Payment Manager Script -->
+    <script src="js/payment.js"></script>
+    
+    <!-- Watchlist Manager Script -->
+    <script src="js/watchlist.js"></script>
+    
+    <!-- Auth Script -->
+    <script src="js/auth.js"></script>
+    <!-- Product Detail Script -->
+    <script src="js/product-detail.js"></script>
+  </body>
+</html>

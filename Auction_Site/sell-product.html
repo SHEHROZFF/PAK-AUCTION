@@ -1,0 +1,1194 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PakistanAuction - Premium Auction Platform</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#f0f9ff",
+                100: "#e0f2fe",
+                200: "#bae6fd",
+                300: "#7dd3fc",
+                400: "#38bdf8",
+                500: "#0ea5e9",
+                600: "#0284c7",
+                700: "#0369a1",
+                800: "#075985",
+                900: "#0c4a6e",
+              },
+              secondary: {
+                50: "#fdf4ff",
+                100: "#fae8ff",
+                200: "#f5d0fe",
+                300: "#f0abfc",
+                400: "#e879f9",
+                500: "#d946ef",
+                600: "#c026d3",
+                700: "#a21caf",
+                800: "#86198f",
+                900: "#701a75",
+              },
+            },
+            animation: {
+              "bounce-slow": "bounce 2s infinite",
+            },
+            fontFamily: {
+              poppins: ["Poppins", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/css">
+      body {
+        font-family: "Poppins", sans-serif;
+      }
+      @keyframes slide-in-left {
+        0% {
+          transform: translateX(-100px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slide-in-right {
+        0% {
+          transform: translateX(100px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      #bid.animate {
+        animation: slide-in-left 1s ease-out forwards;
+      }
+
+      #luxe.animate {
+        animation: slide-in-right 1s ease-out forwards;
+        animation-delay: 0.2s;
+      }
+
+      .dropdown:hover > .dropdown-menu,
+      .dropdown-menu:hover {
+        display: block;
+      }
+
+      /* 3. Mobile menu slides in from left */
+      #mobile-menu {
+        @apply fixed top-0 left-0 h-full w-64 bg-white
+         transform -translate-x-full transition-transform
+         duration-300 ease-in-out z-50;
+      }
+      #mobile-menu.open {
+        @apply translate-x-0;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Loader -->
+    <div
+      id="loader"
+      class="fixed inset-0 bg-gray-200 z-50 flex items-center justify-center transition-opacity duration-700"
+    >
+      <div
+        class="relative text-center flex text-2xl md:text-7xl font-bold text-gray-800"
+      >
+        <span id="bid" class="absolute right-0 opacity-0">Pak</span>
+        <span id="luxe" class="absolute left-0 opacity-0 text-primary-600"
+          >Auction</span
+        >
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-10">
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+          <!-- Logo -->
+          <a href="index.html" class="flex items-center">
+            <i class="fas fa-gavel text-primary-600 text-3xl mr-2"></i>
+            <span class="text-2xl font-bold text-gray-800">
+              Pak<span class="text-primary-600">Auction</span>
+            </span>
+          </a>
+
+          <!-- Navigation & Search (Desktop) -->
+          <div class="hidden md:flex items-center space-x-6">
+            <!-- Nav Links -->
+            <nav class="flex items-center space-x-6">
+              <a
+                href="index.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >Home</a
+              >
+              <!-- Products Dropdown -->
+              <div class="dropdown relative">
+                <button
+                  class="flex items-center text-gray-700 hover:text-primary-600 font-medium z-50"
+                >
+                  Products <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                </button>
+                <div
+                  class="dropdown-menu absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block z-50"
+                >
+                  <div class="py-1">
+                    <a
+                      href="products.html?category=computers"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Computers</a
+                    >
+                    <a
+                      href="products.html?category=antiques"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Antiques</a
+                    >
+                    <a
+                      href="products.html?category=dvd"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >DVD</a
+                    >
+                    <a
+                      href="products.html?category=retro-games"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Retro Games</a
+                    >
+                    <a
+                      href="products.html?category=phones"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Phones</a
+                    >
+                    <a
+                      href="products.html?category=art"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      >Art</a
+                    >
+                  </div>
+                </div>
+              </div>
+              <a
+                href="how-it-works.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >How It Works</a
+              >
+              <a
+                href="about.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >About</a
+              >
+              <a
+                href="contact.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >Contact</a
+              >
+            </nav>
+
+            <!-- 1. Search – flip to expand on the left -->
+            <div class="relative group pr-4">
+              <button class="p-2 focus:outline-none">
+                <i
+                  class="fas fa-search text-gray-500 group-hover:text-primary-600 transition-colors duration-300"
+                ></i>
+              </button>
+              <input
+                type="text"
+                placeholder="Search auctions..."
+                class="absolute left-0 top-1/2 transform -translate-y-1/2 w-0 opacity-0 group-hover:opacity-100 group-hover:w-48 focus:opacity-100 focus:w-48 transition-all duration-300 ease-out rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent px-4 py-2"
+              />
+            </div>
+          </div>
+
+          <!-- Auth Buttons -->
+          <div class="hidden md:flex items-center space-x-4">
+            <!-- When NOT authenticated -->
+            <div id="auth-buttons" class="flex items-center space-x-4">
+              <a
+                href="login.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >Login</a
+              >
+              <a href="sell-product.html" class="sell-your-product_Navbar">
+                <span class="sell-your-product_Navbar-text-container">
+                  <span class="sell-your-product_Navbar-text">Sell Product</span>
+                </span>
+              </a>
+            </div>
+
+            <!-- When authenticated -->
+            <div id="user-menu" class="hidden items-center space-x-4">
+              <a href="sell-product.html" class="sell-your-product_Navbar">
+                <span class="sell-your-product_Navbar-text-container">
+                  <span class="sell-your-product_Navbar-text">Sell Product</span>
+                </span>
+              </a>
+              
+              <!-- User Dropdown -->
+              <div class="dropdown relative">
+                <button
+                  class="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium"
+                >
+                  <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
+                    <span id="user-avatar">U</span>
+                  </div>
+                  <span id="user-display-name">User</span>
+                  <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div
+                  class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block z-50"
+                >
+                  <div class="py-1">
+                    <div class="px-4 py-2 border-b border-gray-100">
+                      <p class="text-sm font-medium text-gray-900" id="user-menu-name">User Name</p>
+                      <p class="text-sm text-gray-500" id="user-menu-email">user@example.com</p>
+                    </div>
+                    <a
+                      href="#"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      ><i class="fas fa-user mr-2"></i>Profile</a
+                    >
+                    <a
+                      href="#"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      ><i class="fas fa-gavel mr-2"></i>My Bids</a
+                    >
+                    <a
+                      href="#"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      ><i class="fas fa-tag mr-2"></i>My Listings</a
+                    >
+                    <a
+                      href="#"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                      ><i class="fas fa-cog mr-2"></i>Settings</a
+                    >
+                    <div class="border-t border-gray-100"></div>
+                    <button
+                      id="logout-btn"
+                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                    >
+                      <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Menu Button -->
+          <button
+            id="mobile-menu-button"
+            class="md:hidden text-gray-700 focus:outline-none"
+          >
+            <i class="fas fa-bars text-2xl"></i>
+          </button>
+        </div>
+
+        <!-- Mobile Search (unchanged) -->
+        <div class="md:hidden pb-4">
+          <form class="relative">
+            <input
+              type="text"
+              placeholder="Search for auctions..."
+              class="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <button
+              type="submit"
+              class="absolute right-0 top-0 mt-2 mr-4 text-gray-500 hover:text-primary-600"
+            >
+              <i class="fas fa-search"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        class="md:hidden fixed inset-y-0 left-0 w-64 bg-white transform -translate-x-full transition-transform duration-300 ease-in-out z-40 pt-16"
+        id="mobile-menu"
+      >
+        <div class="container mx-auto px-4 py-2">
+          <nav class="flex flex-col space-y-3 py-3">
+            <a
+              href="index.html"
+              class="text-gray-700 hover:text-primary-600 font-medium py-2"
+              >Home</a
+            >
+            <div class="relative">
+              <button
+                class="flex justify-between w-full text-gray-700 hover:text-primary-600 font-medium mobile-dropdown-button py-2"
+              >
+                Products <i class="fas fa-chevron-down text-xs"></i>
+              </button>
+              <div
+                class="hidden bg-gray-50 rounded-md mt-1 py-2 mobile-dropdown-menu"
+              >
+                <a
+                  href="products.html?category=computers"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Computers</a
+                >
+                <a
+                  href="products.html?category=antiques"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Antiques</a
+                >
+                <a
+                  href="products.html?category=dvd"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >DVD</a
+                >
+                <a
+                  href="products.html?category=retro-games"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Retro Games</a
+                >
+                <a
+                  href="products.html?category=phones"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Phones</a
+                >
+                <a
+                  href="products.html?category=art"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
+                  >Art</a
+                >
+              </div>
+            </div>
+            <a
+              href="how-it-works.html"
+              class="text-gray-700 hover:text-primary-600 font-medium py-2"
+              >How It Works</a
+            >
+            <a
+              href="about.html"
+              class="text-gray-700 hover:text-primary-600 font-medium py-2"
+              >About</a
+            >
+            <a
+              href="contact.html"
+              class="text-gray-700 hover:text-primary-600 font-medium py-2"
+              >Contact</a
+            >
+            
+            <!-- Mobile Auth Section -->
+            <div id="mobile-auth-buttons" class="flex space-x-4 pt-2">
+              <a
+                href="login.html"
+                class="text-gray-700 hover:text-primary-600 font-medium"
+                >Login</a
+              >
+              <a
+                href="register.html"
+                class="bg-primary-600 text-white px-4 py-2 rounded-full hover:bg-primary-700 transition duration-300"
+                >Register</a
+              >
+            </div>
+
+            <!-- Mobile User Menu (when authenticated) -->
+            <div id="mobile-user-menu" class="hidden pt-2 border-t border-gray-200">
+              <div class="flex items-center space-x-3 py-3">
+                <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-medium">
+                  <span id="mobile-user-avatar">U</span>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-900" id="mobile-user-name">User Name</p>
+                  <p class="text-sm text-gray-500" id="mobile-user-email">user@example.com</p>
+                </div>
+              </div>
+              <div class="space-y-1">
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-user mr-2"></i>Profile
+                </a>
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-gavel mr-2"></i>My Bids
+                </a>
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-tag mr-2"></i>My Listings
+                </a>
+                <a href="#" class="block py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-cog mr-2"></i>Settings
+                </a>
+                <button id="mobile-logout-btn" class="block w-full text-left py-2 text-gray-700 hover:text-primary-600 font-medium">
+                  <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!--  Intro Hero -->
+    <section
+      class="relative py-20 bg-primary-600 text-white overflow-hidden hero-pattern"
+      data-aos="fade-down"
+    >
+      <!-- Soft background blobs -->
+      <div class="absolute inset-0 pointer-events-none">
+        <div
+          class="absolute top-10 left-1/4 w-72 h-72 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+          style="animation-delay: 0s"
+        ></div>
+        <div
+          class="absolute bottom-10 right-1/4 w-80 h-80 bg-secondary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+          style="animation-delay: 1s"
+        ></div>
+      </div>
+
+      <!-- Dark overlay for contrast -->
+      <div class="absolute inset-0 bg-black opacity-30"></div>
+
+      <div class="container mx-auto px-4 relative text-center">
+        <h1 class="text-5xl font-bold mb-4">Sell Your Product</h1>
+        <p class="text-lg max-w-2xl mx-auto">
+          Turn your unused items into cash by sharing them on
+          <span class="font-semibold">PakistanAuction</span>
+          we will have concern in a sec or 2
+        </p>
+      </div>
+    </section>
+
+    <!-- Selling Process Steps -->
+    <div class="max-w-4xl mx-auto mb-8 px-4">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center"></h2>
+
+      <div class="flex flex-col md:flex-row justify-between items-start mb-8">
+        <div
+          class="flex-1 flex flex-col items-center text-center px-4 mb-6 md:mb-0"
+        >
+          <div
+            class="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mb-4"
+          >
+            <i class="fas fa-clipboard-list text-primary-600 text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">
+            1. Upload Item
+          </h3>
+          <p class="text-gray-600">
+            Fill out the form with detailed information about your product
+          </p>
+        </div>
+
+        <div class="hidden md:block w-12 pt-8">
+          <div class="border-t-2 border-dashed border-primary-200"></div>
+        </div>
+
+        <div
+          class="flex-1 flex flex-col items-center text-center px-4 mb-6 md:mb-0"
+        >
+          <div
+            class="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mb-4"
+          >
+            <i class="fas fa-check-circle text-primary-600 text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">
+            2. Inspection
+          </h3>
+          <p class="text-gray-600">
+            Our team will inspect your product(s) before contact
+          </p>
+        </div>
+
+        <div class="hidden md:block w-12 pt-8">
+          <div class="border-t-2 border-dashed border-primary-200"></div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center text-center px-4">
+          <div
+            class="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center mb-4"
+          >
+            <i class="fas fa-gavel text-primary-600 text-2xl"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">
+            3. Team Collab
+          </h3>
+          <p class="text-gray-600">
+            After inspection team will contact through WhatsApp to confirm you
+            for auction
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Form Container -->
+    <div class="max-w-7xl mx-auto mb-12 md:flex md:space-x-8">
+      <div class="bg-white p-6 md:p-10 rounded-lg shadow-md mb-8 md:mb-0">
+        <h2
+          class="text-2xl md:text-3xl font-bold text-gray-800 mb-6 text-center"
+        >
+          Submit Your Product Details
+        </h2>
+
+        <!-- Form Progress Indicator -->
+        <div class="flex justify-between items-center mb-8 px-4">
+          <div class="flex items-center w-full">
+            <div
+              class="progress-step active rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium"
+            >
+              1
+            </div>
+            <div class="progress-line flex-1 mx-2 active"></div>
+            <div
+              class="progress-step rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 text-sm font-medium"
+            >
+              2
+            </div>
+            <div class="progress-line flex-1 mx-2"></div>
+            <div
+              class="progress-step rounded-full w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 text-sm font-medium"
+            >
+              3
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Labels -->
+        <div class="progress-labels flex justify-between text-sm text-gray-600 mb-8 px-2">
+          <div class="text-primary-600 font-medium">Personal Info</div>
+          <div>Product Details</div>
+          <div>Images & Submit</div>
+        </div>
+
+        <form
+          id="productForm"
+          action=""
+          method="POST"
+          enctype="multipart/form-data"
+          class="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          <!-- Personal Info Section -->
+          <div class="md:col-span-2">
+            <h3
+              class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+            >
+              <i class="fas fa-user-circle text-primary-500 mr-2"></i>
+              Personal Information
+            </h3>
+            <p class="text-gray-600 mb-6">
+              Please provide your contact details so buyers can reach you
+            </p>
+          </div>
+
+          <div class="relative">
+            <label
+              for="sellerName"
+              class="block text-gray-700 font-medium mb-2"
+            >
+              <i class="fas fa-user text-primary-400 mr-1"></i> Full Name
+            </label>
+            <input
+              type="text"
+              id="sellerName"
+              name="sellerName"
+              placeholder="Your full name"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200"
+            />
+          </div>
+
+          <div class="relative">
+            <label
+              for="sellerEmail"
+              class="block text-gray-700 font-medium mb-2"
+            >
+              <i class="fas fa-envelope text-primary-400 mr-1"></i> Email
+              Address
+            </label>
+            <input
+              type="email"
+              id="sellerEmail"
+              name="sellerEmail"
+              placeholder="your@email.com"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200"
+            />
+          </div>
+
+          <div class="relative">
+            <label
+              for="sellerPhone"
+              class="block text-gray-700 font-medium mb-2"
+            >
+              <i class="fas fa-phone text-primary-400 mr-1"></i> Phone Number
+            </label>
+            <input
+              type="tel"
+              id="sellerPhone"
+              name="sellerPhone"
+              placeholder="03xx-xxxxxxx"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200"
+            />
+            <p class="text-xs text-gray-500 mt-1">Format: 03xx-xxxxxxx</p>
+          </div>
+
+          <div class="relative">
+            <label for="city" class="block text-gray-700 font-medium mb-2">
+              <i class="fas fa-map-marker-alt text-primary-400 mr-1"></i> City
+            </label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              placeholder="Your city"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200"
+            />
+          </div>
+
+          <!-- Product Info Section -->
+          <div class="md:col-span-2 mt-8">
+            <h3
+              class="text-lg font-semibold text-gray-800 mb-4 flex items-center"
+            >
+              <i class="fas fa-box text-primary-500 mr-2"></i>
+              Product Information
+            </h3>
+            <p class="text-gray-600 mb-6">
+              Provide detailed information about your product to attract more
+              bidders
+            </p>
+          </div>
+
+          <div class="relative">
+            <label
+              for="productName"
+              class="block text-gray-700 font-medium mb-2"
+            >
+              <i class="fas fa-tag text-primary-400 mr-1"></i> Product Name
+            </label>
+            <input
+              type="text"
+              id="productName"
+              name="productName"
+              placeholder="e.g., Samsung Galaxy S22"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              Be specific and descriptive
+            </p>
+          </div>
+
+          <div class="relative">
+            <label for="brand" class="block text-gray-700 font-medium mb-2">
+              <i class="fas fa-copyright text-primary-400 mr-1"></i> Brand
+            </label>
+            <input
+              type="text"
+              id="brand"
+              name="brand"
+              placeholder="e.g., Samsung"
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200"
+            />
+          </div>
+
+          <div class="relative">
+            <label for="category" class="block text-gray-700 font-medium mb-2">
+              <i class="fas fa-folder text-primary-400 mr-1"></i> Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200 bg-white"
+            >
+              <option value="">Select a category</option>
+              <option>Electronics</option>
+              <option>Computers</option>
+              <option>Phones & Tablets</option>
+              <option>Furniture</option>
+              <option>Clothing</option>
+              <option>Books</option>
+              <option>Vehicles</option>
+              <option>Antiques</option>
+              <option>Art</option>
+              <option>Jewelry</option>
+              <option>Collectibles</option>
+              <option>Art & Collectibles</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="relative">
+            <label for="condition" class="block text-gray-700 font-medium mb-2">
+              <i class="fas fa-star-half-alt text-primary-400 mr-1"></i>
+              Condition
+            </label>
+            <select
+              id="condition"
+              name="condition"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200 bg-white"
+            >
+              <option value="">Select condition</option>
+              <option>Brand New</option>
+              <option>Like New</option>
+              <option>Excellent</option>
+              <option>Good</option>
+              <option>Fair</option>
+              <option>Poor</option>
+            </select>
+            <p class="text-xs text-gray-500 mt-1">
+              Be honest about the condition
+            </p>
+          </div>
+
+          <div class="relative">
+            <label for="price" class="block text-gray-700 font-medium mb-2">
+              <i class="fas fa-tag text-primary-400 mr-1"></i> Expected Price
+              (PKR)
+            </label>
+            <div class="relative">
+              <span
+                class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500"
+                >₨</span
+              >
+              <input
+                type="number"
+                id="price"
+                name="price"
+                placeholder="e.g., 25000"
+                required
+                class="w-full pl-10 px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200"
+              />
+            </div>
+            <p class="text-xs text-gray-500 mt-1">
+              Set a competitive starting price
+            </p>
+          </div>
+
+          <div class="md:col-span-2">
+            <label
+              for="description"
+              class="block text-gray-700 font-medium mb-2"
+            >
+              <i class="fas fa-align-left text-primary-400 mr-1"></i> Product
+              Description
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows="5"
+              placeholder="Add details like condition, features, defects, reason for selling, age of the item, etc."
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition duration-200"
+            ></textarea>
+            <p class="text-xs text-gray-500 mt-1">
+              Detailed descriptions attract more bidders. Include dimensions,
+              specifications, and any accessories included.
+            </p>
+          </div>
+
+          <div class="md:col-span-2 mt-4">
+            <label
+              for="productImage"
+              class="block text-gray-700 font-medium mb-2"
+            >
+              <i class="fas fa-camera text-primary-400 mr-1"></i> Upload Product
+              Images
+            </label>
+            <div
+              class="image-upload-area rounded-lg p-6 text-center cursor-pointer"
+              id="dropZone"
+            >
+              <input
+                type="file"
+                id="productImage"
+                name="images"
+                accept="image/*"
+                multiple
+                class="hidden"
+              />
+              <i
+                class="fas fa-cloud-upload-alt text-primary-400 text-4xl mb-3"
+              ></i>
+              <p class="text-gray-700 mb-2">
+                Drag and drop your images here or click to browse
+              </p>
+              <p class="text-gray-500 text-sm">
+                Upload up to 5 high-quality images (Max 5MB each)
+              </p>
+              <button
+                type="button"
+                id="browseButton"
+                class="mt-4 bg-primary-50 text-primary-600 px-4 py-2 rounded-md hover:bg-primary-100 transition duration-300"
+              >
+                Browse Files
+              </button>
+            </div>
+            <div id="imagePreview" class="flex flex-wrap gap-3 mt-4"></div>
+            <p class="text-xs text-gray-500 mt-2">
+              Tip: Include images from multiple angles and in good lighting to
+              showcase your product best
+            </p>
+          </div>
+
+          <!-- Terms and Conditions -->
+          <div class="md:col-span-2 mt-4">
+            <div class="flex items-start">
+              <div class="flex items-center h-5">
+                <input
+                  id="terms"
+                  name="terms"
+                  type="checkbox"
+                  required
+                  class="h-4 w-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+              </div>
+              <div class="ml-3 text-sm">
+                <label for="terms" class="text-gray-700">
+                  I agree to the
+                  <a href="#" class="text-primary-600 hover:underline"
+                    >Terms and Conditions</a
+                  >
+                  and
+                  <a href="#" class="text-primary-600 hover:underline"
+                    >Privacy Policy</a
+                  >
+                  of PakistanAuction
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div class="md:col-span-2 mt-8">
+            <button
+              type="submit"
+              class="w-full bg-green-600 text-white py-4 rounded-md text-lg font-semibold hover:bg-green-700 transition duration-300 flex items-center justify-center"
+            >
+              <i class="fas fa-paper-plane mr-2"></i> Submit Product
+            </button>
+            <p
+              class="text-center text-blue-600 mt-3 text-sm font-medium animate-bounce"
+            >
+              Our team will review your product to ensure a great auction
+              experience.
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white pt-16 pb-8">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+          <!-- Company Info -->
+          <div>
+            <div class="flex items-center space-x-2 mb-6">
+              <i class="fas fa-gavel text-primary-400 text-3xl"></i>
+              <span class="text-2xl font-bold"
+                >Pak<span class="text-primary-400">Auction</span></span
+              >
+            </div>
+            <p class="text-gray-400 mb-6">
+              The premier online auction platform for unique and valuable items.
+            </p>
+            <div class="flex space-x-4">
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+              >
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+              >
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+              >
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+              >
+                <i class="fab fa-linkedin-in"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Quick Links -->
+          <div>
+            <h3 class="text-lg font-semibold mb-6">Quick Links</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="index.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Home</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Auctions</a
+                >
+              </li>
+              <li>
+                <a
+                  href="how-it-works.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >How It Works</a
+                >
+              </li>
+              <li>
+                <a
+                  href="about.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >About Us</a
+                >
+              </li>
+              <li>
+                <a
+                  href="contact.html"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Categories -->
+          <div>
+            <h3 class="text-lg font-semibold mb-6">Categories</h3>
+            <ul class="space-y-3">
+              <li>
+                <a
+                  href="products.html?category=computers"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Computers</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html?category=antiques"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Antiques</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html?category=retro-games"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Retro Games</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html?category=phones"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Phones</a
+                >
+              </li>
+              <li>
+                <a
+                  href="products.html?category=art"
+                  class="text-gray-400 hover:text-white transition duration-300"
+                  >Art</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Contact -->
+          <div>
+            <h3 class="text-lg font-semibold mb-6">Contact Us</h3>
+            <ul class="space-y-3">
+              <li class="flex items-start">
+                <i class="fas fa-map-marker-alt mt-1 mr-3 text-gray-400"></i>
+                <span class="text-gray-400"
+                  >123 Auction St, New York, NY 10001</span
+                >
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-phone-alt mr-3 text-gray-400"></i>
+                <span class="text-gray-400">+1 (555) 123-4567</span>
+              </li>
+              <li class="flex items-center">
+                <i class="fas fa-envelope mr-3 text-gray-400"></i>
+                <span class="text-gray-400">info@PakistanAuction.com</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-700 pt-8">
+          <div class="flex flex-col md:flex-row justify-between items-center">
+            <p class="text-gray-400 mb-4 md:mb-0">
+              &copy; 2025 PakistanAuction. All rights reserved.
+            </p>
+            <div class="flex space-x-6">
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+                >Privacy Policy</a
+              >
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+                >Terms of Service</a
+              >
+              <a
+                href="#"
+                class="text-gray-400 hover:text-white transition duration-300"
+                >Cookie Policy</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script>
+      // Loader
+      window.addEventListener("load", () => {
+        // Trigger text animations
+        document.getElementById("bid").classList.add("animate");
+        document.getElementById("luxe").classList.add("animate");
+
+        // Optional delay before fading out
+        setTimeout(() => {
+          const loader = document.getElementById("loader");
+          loader.classList.add("opacity-0");
+          setTimeout(() => {
+            loader.style.display = "none";
+          }, 700); // match fade transition
+        }, 2000); // time to let animation play
+      });
+
+      // Mobile Menu Toggle
+      document
+        .getElementById("mobile-menu-button")
+        .addEventListener("click", function () {
+          const mobileMenu = document.getElementById("mobile-menu");
+          document
+            .getElementById("mobile-menu-button")
+            .addEventListener("click", () => {
+              mobileMenu.classList.toggle("translate-x-0");
+            });
+        });
+
+      // Mobile Dropdown Toggles
+      document.querySelectorAll(".mobile-dropdown-button").forEach((button) => {
+        button.addEventListener("click", function () {
+          const dropdownMenu = this.nextElementSibling;
+          dropdownMenu.classList.toggle("hidden");
+        });
+      });
+      // 4. Toggle mobile drawer
+      document
+        .getElementById("mobile-menu-button")
+        .addEventListener("click", () => {
+          document.getElementById("mobile-menu").classList.toggle("open");
+        });
+
+      // Simple JavaScript for animations (if needed)
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add scroll animations or other interactive elements here
+        const cards = document.querySelectorAll(".card-hover");
+
+        // Add scroll reveal animation (simple version)
+        window.addEventListener("scroll", function () {
+          cards.forEach((card) => {
+            const cardTop = card.getBoundingClientRect().top;
+            const windowHeight = window.innerHeight;
+
+            if (cardTop < windowHeight - 100) {
+              card.style.opacity = "1";
+              card.style.transform = "translateY(0)";
+            }
+          });
+        });
+
+        // Initialize cards
+        cards.forEach((card) => {
+          card.style.opacity = "0";
+          card.style.transform = "translateY(20px)";
+          card.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+        });
+
+        // Trigger initial scroll check
+        window.dispatchEvent(new Event("scroll"));
+      });
+
+      // Auto-looping carousel logic
+      (function () {
+        const carousel = document.getElementById("productCarousel");
+        // Only run carousel logic if carousel exists
+        if (!carousel) return;
+        
+        const slides = carousel.children;
+        const dotsContainer = document.getElementById("carouselDots");
+        if (!dotsContainer) return;
+        
+        let index = 0;
+
+        // create dots
+        for (let i = 0; i < slides.length; i++) {
+          const dot = document.createElement("button");
+          dot.className = "w-3 h-3 rounded-full bg-white/60 hover:bg-white";
+          dot.addEventListener("click", () => goTo(i));
+          dotsContainer.appendChild(dot);
+        }
+        const dots = dotsContainer.children;
+
+        function update() {
+          carousel.style.transform = `translateX(-${index * 100}%)`;
+          Array.from(dots).forEach((d, i) =>
+            d.classList.toggle("bg-white", i === index)
+          );
+        }
+
+        function goTo(i) {
+          index = i;
+          update();
+          resetInterval();
+        }
+
+        function next() {
+          index = (index + 1) % slides.length;
+          update();
+        }
+
+        let interval = setInterval(next, 3000);
+        function resetInterval() {
+          clearInterval(interval);
+          interval = setInterval(next, 3000);
+        }
+
+        // init
+        update();
+      })();
+    </script>
+    <!-- Auth Script -->
+    <script src="js/auth.js"></script>
+    <!-- Sell Product Script -->
+    <script src="js/sell-product.js"></script>
+  </body>
+</html>

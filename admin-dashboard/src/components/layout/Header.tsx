@@ -37,7 +37,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="relative tooltip">
+          {/* <div className="relative tooltip">
             <button className="text-gray-500 hover:text-gray-700 relative">
               <i className="fas fa-bell"></i>
               <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full badge-pulse"></span>
@@ -50,7 +50,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               <span className="absolute -top-1 -right-1 h-2 w-2 bg-indigo-500 rounded-full"></span>
             </button>
             <span className="tooltip-text">5 unread messages</span>
-          </div>
+          </div> */}
           
           {/* User Dropdown */}
           <div className="relative group">

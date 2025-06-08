@@ -47,7 +47,7 @@ export function DashboardTab() {
   useEffect(() => {
     // Fetch all dashboard data
     dispatch(fetchDashboardStats());
-    dispatch(fetchRevenueData());
+    dispatch(fetchRevenueData('6months'));
     dispatch(fetchCategoryStats());
     dispatch(fetchRecentActivity());
     dispatch(fetchEndingSoonAuctions());

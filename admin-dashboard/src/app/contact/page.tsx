@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiService } from '@/services/apiService';
 
 interface ContactContent {
   _id?: string;
@@ -63,8 +64,6 @@ export default function ContactManagementPage() {
   const [activeTab, setActiveTab] = useState('content');
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-
   useEffect(() => {
     loadContactContent();
     loadSubmissions();
@@ -77,35 +76,28 @@ export default function ContactManagementPage() {
 
   const loadContactContent = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/contact/content`);
-      const data = await response.json();
+      const data = await apiService.getContactContent();
       
       if (data.success) {
         setContactContent(data.data);
       }
     } catch (error) {
       console.error('Error loading contact content:', error);
-      showNotification('error', 'Failed to load contact content');
+      showNotification('error', 'Failed to load contact content: ' + (error as Error).message);
     }
   };
 
   const loadSubmissions = async () => {
     try {
       setSubmissionsLoading(true);
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/contact/submissions`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
+      const data = await apiService.getContactSubmissions();
       
       if (data.success) {
         setSubmissions(data.data.submissions);
       }
     } catch (error) {
       console.error('Error loading submissions:', error);
-      showNotification('error', 'Failed to load contact submissions');
+      showNotification('error', 'Failed to load contact submissions: ' + (error as Error).message);
     } finally {
       setSubmissionsLoading(false);
     }
@@ -114,17 +106,7 @@ export default function ContactManagementPage() {
   const saveContactContent = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/contact/content`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(contactContent)
-      });
-
-      const data = await response.json();
+      const data = await apiService.updateContactContent(contactContent);
 
       if (data.success) {
         showNotification('success', 'Contact content updated successfully');
@@ -133,7 +115,7 @@ export default function ContactManagementPage() {
       }
     } catch (error) {
       console.error('Error saving contact content:', error);
-      showNotification('error', 'Failed to save contact content');
+      showNotification('error', 'Failed to save contact content: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -141,17 +123,7 @@ export default function ContactManagementPage() {
 
   const updateSubmissionStatus = async (id: string, status: string, adminNotes?: string) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/contact/submissions/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status, adminNotes })
-      });
-
-      const data = await response.json();
+      const data = await apiService.updateContactSubmissionStatus(id, status, adminNotes);
 
       if (data.success) {
         loadSubmissions(); // Reload submissions
@@ -161,7 +133,7 @@ export default function ContactManagementPage() {
       }
     } catch (error) {
       console.error('Error updating submission:', error);
-      showNotification('error', 'Failed to update submission');
+      showNotification('error', 'Failed to update submission: ' + (error as Error).message);
     }
   };
 

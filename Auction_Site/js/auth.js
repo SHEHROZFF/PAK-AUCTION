@@ -1124,6 +1124,94 @@ class AuthManager {
       this.verificationCheckInterval = null;
     }
   }
+
+  // Handle email verification from URL token
+  async handleEmailVerification(token, callbacks = {}) {
+    const {
+      onLoading = () => {},
+      onSuccess = () => {},
+      onError = () => {},
+      onNoToken = () => {}
+    } = callbacks;
+
+    // Check if token exists
+    if (!token) {
+      console.log('❌ No verification token provided');
+      onNoToken();
+      return;
+    }
+
+    console.log('🔍 Verifying email with token...');
+    onLoading();
+
+    try {
+      const response = await fetch(`${this.baseURL}/verify-email`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('✅ Email verification successful');
+        
+        // Update current user if logged in
+        if (this.currentUser) {
+          this.currentUser.isEmailVerified = true;
+          // Update stored user info
+          localStorage.setItem('userInfo', JSON.stringify(this.currentUser));
+          this.updateUI();
+          this.hideEmailVerificationNotice();
+        }
+        
+        onSuccess(data);
+        this.showMessage('Email verified successfully! 🎉', 'success');
+      } else {
+        console.log('❌ Email verification failed:', data.message);
+        onError(data.message || 'Verification failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('❌ Email verification error:', error);
+      onError('Network error. Please check your connection and try again.');
+    }
+  }
+
+  // Handle resend verification with email parameter (for verify page)
+  async handleResendVerificationWithEmail(email) {
+    if (!email) {
+      this.showMessage('Email address is required', 'error');
+      return false;
+    }
+
+    try {
+      const response = await fetch(`${this.baseURL}/resend-verification`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        this.showMessage('✅ Verification email sent! Please check your inbox and spam folder.', 'success');
+        return true;
+      } else {
+        this.showMessage(data.message || 'Failed to send verification email', 'error');
+        return false;
+      }
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      this.showMessage('Network error. Please try again.', 'error');
+      return false;
+    }
+  }
 }
 
 // Initialize authentication manager only once

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiService } from '@/services/apiService';
 
 interface AboutContent {
   _id?: string;
@@ -72,8 +73,6 @@ export default function AboutManagementPage() {
   const [activeTab, setActiveTab] = useState('hero');
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-
   useEffect(() => {
     loadAboutContent();
   }, []);
@@ -85,32 +84,21 @@ export default function AboutManagementPage() {
 
   const loadAboutContent = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/about/content`);
-      const data = await response.json();
+      const data = await apiService.getAboutContent();
 
       if (data.success) {
         setAboutContent(data.data);
       }
     } catch (error) {
       console.error('Error loading about content:', error);
-      showNotification('error', 'Failed to load about content');
+      showNotification('error', 'Failed to load about content: ' + (error as Error).message);
     }
   };
 
   const saveAboutContent = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(`${API_BASE_URL}/about/content`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(aboutContent)
-      });
-
-      const data = await response.json();
+      const data = await apiService.updateAboutContent(aboutContent);
 
       if (data.success) {
         showNotification('success', 'About content updated successfully');
@@ -119,7 +107,7 @@ export default function AboutManagementPage() {
       }
     } catch (error) {
       console.error('Error saving about content:', error);
-      showNotification('error', 'Failed to save about content');
+      showNotification('error', 'Failed to save about content: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }

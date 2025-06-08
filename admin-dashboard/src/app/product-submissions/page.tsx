@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { API_BASE_URL } from '@/config/api';
+import { apiService } from '@/services/apiService';
 
 interface ProductSubmission {
   _id: string;
@@ -92,32 +92,17 @@ export default function ProductSubmissionsPage() {
     loadCategories();
   }, [currentPage, filters]);
 
-  const getAuthToken = () => {
-    return localStorage.getItem('authToken');
-  };
-
   const loadSubmissions = async () => {
     try {
       setLoading(true);
-      const token = getAuthToken();
-      
-      const queryParams = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '10',
-        ...(filters.status && { status: filters.status }),
-        ...(filters.category && { category: filters.category }),
-        ...(filters.search && { search: filters.search })
-      });
+      const data = await apiService.getProductSubmissions(
+        currentPage,
+        10,
+        filters.search,
+        filters.status
+      );
 
-      const response = await fetch(`${API_BASE_URL}/product-submissions/admin/all?${queryParams}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
+      if (data.success) {
         setSubmissions(data.data.submissions);
         setStatusCounts(data.data.statusCounts);
         setTotalPages(data.data.pagination.totalPages);
@@ -133,9 +118,8 @@ export default function ProductSubmissionsPage() {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/categories`);
-      if (response.ok) {
-        const data = await response.json();
+      const data = await apiService.getCategories();
+      if (data.success) {
         setCategories(data.data.categories || data.data || []);
       }
     } catch (error) {
@@ -146,25 +130,15 @@ export default function ProductSubmissionsPage() {
   const updateSubmissionStatus = async (submissionId: string, status: string, notes: string) => {
     try {
       setActionLoading(true);
-      const token = getAuthToken();
+      const data = await apiService.updateProductSubmissionStatus(submissionId, status, notes);
 
-      const response = await fetch(`${API_BASE_URL}/product-submissions/admin/${submissionId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status, adminNotes: notes })
-      });
-
-      if (response.ok) {
+      if (data.success) {
         await loadSubmissions();
         setShowModal(false);
         setReviewData({ status: '', adminNotes: '' });
         alert('Submission status updated successfully!');
       } else {
-        const error = await response.json();
-        alert(`Failed to update status: ${error.message}`);
+        alert(`Failed to update status: ${data.message}`);
       }
     } catch (error) {
       console.error('Error updating status:', error);
@@ -177,18 +151,9 @@ export default function ProductSubmissionsPage() {
   const convertToAuction = async (submissionId: string) => {
     try {
       setActionLoading(true);
-      const token = getAuthToken();
+      const data = await apiService.convertProductSubmissionToAuction(submissionId, conversionData);
 
-      const response = await fetch(`${API_BASE_URL}/product-submissions/admin/${submissionId}/convert-to-auction`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(conversionData)
-      });
-
-      if (response.ok) {
+      if (data.success) {
         await loadSubmissions();
         setShowModal(false);
         setConversionData({
@@ -199,14 +164,13 @@ export default function ProductSubmissionsPage() {
           startTime: '',
           categoryId: ''
         });
-        alert('Submission converted to auction successfully!');
+        alert('Successfully converted to auction!');
       } else {
-        const error = await response.json();
-        alert(`Failed to convert: ${error.message}`);
+        alert(`Failed to convert: ${data.message}`);
       }
     } catch (error) {
       console.error('Error converting to auction:', error);
-      alert('Network error converting submission');
+      alert('Network error converting to auction');
     } finally {
       setActionLoading(false);
     }
@@ -218,22 +182,13 @@ export default function ProductSubmissionsPage() {
     }
 
     try {
-      const token = getAuthToken();
+      const data = await apiService.deleteProductSubmission(submissionId);
 
-      const response = await fetch(`${API_BASE_URL}/product-submissions/admin/${submissionId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
+      if (data.success) {
         await loadSubmissions();
         alert('Submission deleted successfully!');
       } else {
-        const error = await response.json();
-        alert(`Failed to delete: ${error.message}`);
+        alert(`Failed to delete: ${data.message}`);
       }
     } catch (error) {
       console.error('Error deleting submission:', error);

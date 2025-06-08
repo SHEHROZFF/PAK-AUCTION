@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiService } from '@/services/apiService';
 
 interface Hero {
   title: string;
@@ -108,15 +109,14 @@ export default function HomepageManagementPage() {
 
   const fetchHomepageContent = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/homepage/content');
-      const data = await response.json();
+      const data = await apiService.getHomepageContent();
       
       if (data.success) {
         setContent(data.data);
       }
     } catch (error) {
       console.error('Error fetching homepage content:', error);
-      setMessage('Failed to load homepage content');
+      setMessage('Failed to load homepage content: ' + (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -125,13 +125,7 @@ export default function HomepageManagementPage() {
   const fetchAuctions = async () => {
     setAuctionsLoading(true);
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:5000/api/homepage/auctions-for-selection', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
+      const data = await apiService.getAuctionsForSelection();
       
       if (data.success) {
         setAuctions(data.data || []);
@@ -144,8 +138,7 @@ export default function HomepageManagementPage() {
       console.error('Error fetching auctions:', error);
       // Fallback to public auctions endpoint if admin endpoint fails
       try {
-        const fallbackResponse = await fetch('http://localhost:5000/api/auctions?status=ACTIVE&limit=50');
-        const fallbackData = await fallbackResponse.json();
+        const fallbackData = await apiService.getActiveAuctions(50);
         if (fallbackData.success) {
           setAuctions(fallbackData.data || []);
           console.log('✅ Loaded auctions from fallback endpoint');
@@ -170,17 +163,7 @@ export default function HomepageManagementPage() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:5000/api/homepage/content', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(content)
-      });
-
-      const data = await response.json();
+      const data = await apiService.updateHomepageContent(content);
       
       if (data.success) {
         setMessage('✅ Homepage content updated successfully! Check index.html now');
@@ -190,7 +173,7 @@ export default function HomepageManagementPage() {
       }
     } catch (error) {
       console.error('Error saving content:', error);
-      setMessage('Failed to save changes');
+      setMessage('Failed to save changes: ' + (error as Error).message);
     } finally {
       setSaving(false);
     }

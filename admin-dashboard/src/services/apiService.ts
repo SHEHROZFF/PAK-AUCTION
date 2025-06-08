@@ -293,6 +293,96 @@ class ApiService {
       method: 'DELETE',
     });
   }
+
+  // Homepage Management APIs
+  async getHomepageContent() {
+    return this.request('/homepage/content');
+  }
+
+  async updateHomepageContent(content: any) {
+    return this.request('/homepage/content', {
+      method: 'PUT',
+      body: JSON.stringify(content),
+    });
+  }
+
+  async getAuctionsForSelection() {
+    return this.request('/homepage/auctions-for-selection');
+  }
+
+  async getActiveAuctions(limit = 50) {
+    return this.request(`/auctions?status=ACTIVE&limit=${limit}`);
+  }
+
+  // Contact Management APIs
+  async getContactContent() {
+    return this.request('/contact/content');
+  }
+
+  async updateContactContent(content: any) {
+    return this.request('/contact/content', {
+      method: 'PUT',
+      body: JSON.stringify(content),
+    });
+  }
+
+  async getContactSubmissions() {
+    return this.request('/contact/submissions');
+  }
+
+  async updateContactSubmissionStatus(id: string, status: string, adminNotes?: string) {
+    return this.request(`/contact/submissions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, adminNotes }),
+    });
+  }
+
+  // About Management APIs
+  async getAboutContent() {
+    return this.request('/about/content');
+  }
+
+  async updateAboutContent(content: any) {
+    return this.request('/about/content', {
+      method: 'PUT',
+      body: JSON.stringify(content),
+    });
+  }
+
+  // Product Submission Management APIs
+  async getProductSubmissions(page = 1, limit = 10, search = '', status = '') {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...(search && { search }),
+      ...(status && { status }),
+    });
+    return this.request(`/product-submissions/admin/all?${params}`);
+  }
+
+  async getProductSubmissionById(id: string) {
+    return this.request(`/product-submissions/${id}`);
+  }
+
+  async updateProductSubmissionStatus(id: string, status: string, adminNotes?: string) {
+    return this.request(`/product-submissions/admin/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, adminNotes }),
+    });
+  }
+
+  async deleteProductSubmission(id: string) {
+    return this.request(`/product-submissions/admin/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async convertProductSubmissionToAuction(id: string, auctionData: any) {
+    return this.request(`/product-submissions/admin/${id}/convert-to-auction`, {
+      method: 'POST',
+      body: JSON.stringify(auctionData),
+    });
+  }
 }
 
 export const apiService = new ApiService(); 

@@ -1,4 +1,5 @@
-export const API_BASE_URL = 'http://localhost:5000/api';
+// export const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = 'https://pak-auc-back.com.phpnode.net/api';
 
 export const API_ENDPOINTS = {
   // Product Submissions

@@ -49,7 +49,9 @@ const corsOptions = {
       'http://127.0.0.1:8080',
       'http://localhost:3001', // Admin dashboard
       'http://127.0.0.1:3001',
-      'null' // For file:// protocol
+      'null', // For file:// protocol
+      'https://pak-auction-gmuk.vercel.app',
+      'https://pak-auction-muk.vercel.app'
     ];
     
     // If environment variable is set, use it

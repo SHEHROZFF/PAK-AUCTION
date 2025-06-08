@@ -5,7 +5,8 @@
 
 class SellProductManager {
   constructor() {
-    this.baseURL = 'http://localhost:5000/api';
+    // this.baseURL = 'http://localhost:5000/api';
+    this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
     this.selectedImages = [];
     this.maxImages = 5;
     this.maxFileSize = 5 * 1024 * 1024; // 5MB
@@ -54,10 +55,27 @@ class SellProductManager {
   }
 
   setupEventListeners() {
-    // Form submission
+    // Form submission - ensure only one listener
     const form = document.getElementById('productForm');
     if (form) {
-      form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+      // Remove any existing listeners
+      form.onsubmit = null;
+      
+      // Add single event listener with proper error handling
+      form.addEventListener('submit', (e) => {
+        console.log('📝 Form submit event triggered');
+        try {
+          return this.handleFormSubmit(e);
+        } catch (error) {
+          console.error('❌ Error in form submit handler:', error);
+          e.preventDefault();
+          return false;
+        }
+      }, { once: false, passive: false });
+      
+      console.log('✅ Form submit listener attached');
+    } else {
+      console.error('❌ Form element not found');
     }
 
     // Enhanced image upload with better error handling
@@ -731,10 +749,14 @@ class SellProductManager {
 
   async handleFormSubmit(e) {
     e.preventDefault();
+    e.stopPropagation(); // Add this to prevent event bubbling
+
+    console.log('🚀 Form submission started');
 
     // Comprehensive validation before submission
     if (!this.validateCompleteForm()) {
-      return;
+      console.log('❌ Form validation failed');
+      return false; // Explicitly return false
     }
 
     this.showLoading();
@@ -742,7 +764,7 @@ class SellProductManager {
     try {
       const formData = this.buildFormData();
       
-      console.log('Submitting product with comprehensive validation...');
+      console.log('📤 Submitting product with comprehensive validation...');
 
       const response = await fetch(`${this.baseURL}/product-submissions/submit`, {
         method: 'POST',
@@ -750,11 +772,19 @@ class SellProductManager {
       });
 
       const result = await response.json();
+      console.log('📥 Server response:', result);
 
       if (result.success) {
+        console.log('✅ Submission successful, showing success modal');
         this.showSuccess(result.message, result.data.submissionId);
-        this.resetForm();
+        
+        // Delay the form reset to prevent immediate page reload
+        setTimeout(() => {
+          console.log('🔄 Resetting form after delay');
+          this.resetForm();
+        }, 1000);
       } else {
+        console.log('❌ Submission failed:', result);
         if (result.errors && Array.isArray(result.errors)) {
           result.errors.forEach(error => this.showNotification(error, 'error'));
         } else {
@@ -763,11 +793,13 @@ class SellProductManager {
       }
 
     } catch (error) {
-      console.error('Submission error:', error);
+      console.error('💥 Submission error:', error);
       this.showError(error.message || 'Failed to submit product. Please try again.');
     } finally {
       this.hideLoading();
     }
+
+    return false; // Explicitly prevent form submission
   }
 
   validateCompleteForm() {
@@ -889,10 +921,22 @@ class SellProductManager {
   }
 
   showSuccess(message, submissionId) {
+    console.log('🎉 Showing success modal');
+    
+    // Prevent any potential page reload
+    window.onbeforeunload = null;
+    
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.onclick = (e) => {
+      // Only close if clicking the overlay, not the modal content
+      if (e.target === modal) {
+        this.closeSuccessModal(modal);
+      }
+    };
+    
     modal.innerHTML = `
-      <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center transform animate-bounce-in">
+      <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 text-center transform animate-bounce-in" onclick="event.stopPropagation()">
         <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <i class="fas fa-check text-green-600 text-3xl"></i>
         </div>
@@ -901,19 +945,42 @@ class SellProductManager {
         <div class="bg-gray-50 rounded-lg p-4 mb-6">
           <p class="text-sm text-gray-500 mb-1">Submission ID:</p>
           <p class="font-mono text-lg font-medium text-gray-800 break-all">${submissionId}</p>
-          <button onclick="navigator.clipboard.writeText('${submissionId}')" 
+          <button onclick="navigator.clipboard.writeText('${submissionId}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy ID', 2000)" 
                   class="mt-2 text-xs text-primary-600 hover:text-primary-700 underline">
             Copy ID
           </button>
         </div>
         <p class="text-sm text-gray-500 mb-8">Save this ID to track your submission status. Our team will review your product within 24-48 hours.</p>
-        <button onclick="this.parentElement.parentElement.remove()" 
+        <button onclick="window.sellProductManager.closeSuccessModal(this.closest('.fixed'))" 
                 class="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors font-medium">
           Close
         </button>
-        </div>
-      `;
+      </div>
+    `;
+    
     document.body.appendChild(modal);
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+    
+    console.log('✅ Success modal displayed');
+  }
+
+  closeSuccessModal(modal) {
+    console.log('🔒 Closing success modal');
+    
+    if (modal && modal.parentElement) {
+      // Restore body scroll
+      document.body.style.overflow = '';
+      
+      // Remove modal with animation
+      modal.style.opacity = '0';
+      setTimeout(() => {
+        if (modal.parentElement) {
+          modal.remove();
+        }
+      }, 300);
+    }
   }
 
   showError(message) {
@@ -994,6 +1061,12 @@ class SellProductManager {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+  // Add page reload detection
+  window.addEventListener('beforeunload', (e) => {
+    console.log('⚠️ Page is about to reload/navigate');
+    console.trace('Page reload stack trace');
+  });
+  
   // Prevent multiple initializations
   if (window.sellProductManager) {
     console.log('⚠️ SellProductManager already initialized');
@@ -1002,6 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Add a small delay to ensure all elements are ready
   setTimeout(() => {
+    console.log('🎯 Initializing SellProductManager...');
     window.sellProductManager = new SellProductManager();
     
     // Add global debug function
@@ -1018,6 +1092,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     console.log('🛠️ Debug: Type testFileInput() in console to test file upload manually');
+    console.log('✅ SellProductManager initialized successfully');
   }, 100);
 });
 

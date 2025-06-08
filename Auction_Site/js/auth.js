@@ -5,7 +5,8 @@
 
 class AuthManager {
   constructor() {
-    this.baseURL = 'http://localhost:5000/api/auth';
+    // this.baseURL = 'http://localhost:5000/api/auth';
+    this.baseURL = 'https://pak-auc-back.com.phpnode.net/api/auth';
     this.currentUser = null;
     this.verificationCheckInterval = null;
     this.isInitialized = false;

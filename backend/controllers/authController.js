@@ -292,7 +292,8 @@ const logout = async (req, res) => {
 // Verify email
 const verifyEmail = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { token } = req.body;
+    console.log("token", token);
 
     // Find user with verification token
     const user = await User.findOne({
@@ -425,9 +426,9 @@ const forgotPassword = async (req, res) => {
 // Reset password
 const resetPassword = async (req, res) => {
   try {
-    const { token } = req.params;
+    const { token } = req.body;
     const { password } = req.body;
-
+    console.log("token", token);
     // Find user with valid reset token
     const user = await User.findOne({
       passwordResetToken: token,

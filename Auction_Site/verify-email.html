@@ -165,75 +165,91 @@
     <!-- Scripts -->
     <script src="js/auth.js"></script>
     <script>
-        // Email verification handling
+        // Email verification handling using AuthManager
         document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-            
-            const loadingState = document.getElementById('loading-state');
-            const successState = document.getElementById('success-state');
-            const errorState = document.getElementById('error-state');
-            const noTokenState = document.getElementById('no-token-state');
-            const errorMessage = document.getElementById('error-message');
-            const resendBtn = document.getElementById('resend-btn');
+            // Wait for AuthManager to be available
+            setTimeout(() => {
+                if (!window.authManager) {
+                    console.error('AuthManager not available');
+                    showErrorState('System error. Please refresh the page.');
+                    return;
+                }
 
-            // Check if token exists
-            if (!token) {
-                loadingState.classList.add('hidden');
-                noTokenState.classList.remove('hidden');
-                return;
-            }
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                
+                const loadingState = document.getElementById('loading-state');
+                const successState = document.getElementById('success-state');
+                const errorState = document.getElementById('error-state');
+                const noTokenState = document.getElementById('no-token-state');
+                const errorMessage = document.getElementById('error-message');
+                const resendBtn = document.getElementById('resend-btn');
 
-            // Verify email with token
-            verifyEmailToken(token);
+                // Helper functions to manage UI states
+                function showLoadingState() {
+                    hideAllStates();
+                    loadingState.classList.remove('hidden');
+                }
 
-            async function verifyEmailToken(token) {
-                try {
-                    const response = await fetch(`http://localhost:5000/api/auth/verify-email?token=${token}`, {
-                        method: 'GET',
-                        credentials: 'include'
-                    });
+                function showSuccessState() {
+                    hideAllStates();
+                    successState.classList.remove('hidden');
+                }
 
-                    const data = await response.json();
-
-                    loadingState.classList.add('hidden');
-
-                    if (response.ok) {
-                        successState.classList.remove('hidden');
-                        
-                        // Update auth manager if user is logged in
-                        if (window.authManager && window.authManager.currentUser) {
-                            window.authManager.currentUser.isEmailVerified = true;
-                            window.authManager.updateUI();
-                        }
-                    } else {
-                        errorState.classList.remove('hidden');
-                        errorMessage.textContent = data.message || 'Verification failed. Please try again.';
-                    }
-                } catch (error) {
-                    console.error('Verification error:', error);
-                    loadingState.classList.add('hidden');
+                function showErrorState(message) {
+                    hideAllStates();
                     errorState.classList.remove('hidden');
-                    errorMessage.textContent = 'Network error. Please check your connection and try again.';
+                    errorMessage.textContent = message;
                 }
-            }
 
-            // Resend verification email
-            resendBtn.addEventListener('click', async function() {
-                const originalText = resendBtn.textContent;
-                resendBtn.textContent = 'Sending...';
-                resendBtn.disabled = true;
-
-                try {
-                    // This would need the user's email - for now, redirect to login
-                    window.location.href = 'login.html?message=Please login to resend verification email';
-                } catch (error) {
-                    console.error('Resend error:', error);
-                } finally {
-                    resendBtn.textContent = originalText;
-                    resendBtn.disabled = false;
+                function showNoTokenState() {
+                    hideAllStates();
+                    noTokenState.classList.remove('hidden');
                 }
-            });
+
+                function hideAllStates() {
+                    loadingState.classList.add('hidden');
+                    successState.classList.add('hidden');
+                    errorState.classList.add('hidden');
+                    noTokenState.classList.add('hidden');
+                }
+
+                // Use AuthManager to handle email verification
+                window.authManager.handleEmailVerification(token, {
+                    onLoading: showLoadingState,
+                    onSuccess: (data) => {
+                        showSuccessState();
+                    },
+                    onError: (message) => {
+                        showErrorState(message);
+                    },
+                    onNoToken: showNoTokenState
+                });
+
+                // Handle resend verification email button
+                resendBtn.addEventListener('click', async function() {
+                    const originalText = resendBtn.textContent;
+                    resendBtn.textContent = 'Sending...';
+                    resendBtn.disabled = true;
+
+                    try {
+                        // Since we don't have the user's email in the URL, redirect to login
+                        // where user can resend verification after logging in
+                        window.authManager.showMessage('Please login to resend verification email', 'info');
+                        setTimeout(() => {
+                            window.location.href = 'login.html?message=Please login to resend verification email';
+                        }, 2000);
+                    } catch (error) {
+                        console.error('Resend error:', error);
+                        window.authManager.showMessage('Please try logging in to resend verification email', 'error');
+                    } finally {
+                        setTimeout(() => {
+                            resendBtn.textContent = originalText;
+                            resendBtn.disabled = false;
+                        }, 2000);
+                    }
+                });
+            }, 100); // Small delay to ensure AuthManager is initialized
         });
     </script>
 </body>

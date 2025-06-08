@@ -37,7 +37,7 @@ const router = express.Router();
 router.post('/register', validateRegister, authController.register);
 router.post('/login', validateLogin, authController.login);
 router.post('/refresh-token', verifyRefreshToken, authController.refreshToken);
-router.get('/verify-email', authController.verifyEmail);
+router.post('/verify-email', authController.verifyEmail);
 router.post('/resend-verification', authController.resendVerification);
 router.post('/forgot-password', validateForgotPassword, authController.forgotPassword);
 router.post('/reset-password', validateResetPassword, authController.resetPassword);

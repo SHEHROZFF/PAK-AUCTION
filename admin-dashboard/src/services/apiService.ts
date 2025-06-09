@@ -1,5 +1,5 @@
-// const API_BASE_URL = 'http://localhost:5000/api';
-const API_BASE_URL = 'https://pak-auc-back.com.phpnode.net/api';
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+// const API_BASE_URL = 'https://pak-auc-back.com.phpnode.net/api';
 class ApiService {
   private getAuthToken(): string | null {
     return localStorage.getItem('authToken');

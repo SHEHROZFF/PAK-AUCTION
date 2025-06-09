@@ -367,7 +367,7 @@ export default function ProductSubmissionsPage() {
                           <div className="flex-shrink-0 h-12 w-12">
                             <img
                               className="h-12 w-12 rounded-lg object-cover"
-                              src={submission.images[0]?.url || '/placeholder.jpg'}
+                              src={`${process.env.NEXT_PUBLIC_API_URL}${submission.images[0]?.url}` || '/placeholder.jpg'}
                               alt={submission.productName}
                             />
                           </div>

@@ -494,17 +494,18 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
                 </h5>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                   {uploadedImages.map((image, index) => {
-                    const imageUrl = `http://localhost:5000${image.url}`;
+                    const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${image.url}`;
                     console.log(`Rendering image ${index}:`, imageUrl);
                     
                     return (
                       <div key={index} className="relative group border rounded-lg overflow-hidden">
-                        <ImageWithFallback
+                        <Image
                           src={imageUrl}
                           alt={image.originalName}
                           width={120}
                           height={96}
                           className="block"
+                          style={{ width: 120, height: 96, objectFit: 'cover' }}
                         />
                         {/* Remove button - positioned absolutely */}
                         <button
@@ -549,52 +550,6 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
         </form>
       </div>
     </div>
-  );
-}
-
-// Custom Image component with fallback
-function ImageWithFallback({ src, alt, className, width = 100, height = 100, ...props }: any) {
-  const [useNextImage, setUseNextImage] = useState(true);
-  const [imgError, setImgError] = useState(false);
-
-  console.log('ImageWithFallback - src:', src);
-
-  if (imgError || !useNextImage) {
-    return (
-      <img
-        src={src}
-        alt={alt}
-        className={className}
-        style={{ width, height, objectFit: 'cover' }}
-        onError={(e) => {
-          console.error('Regular img also failed:', src);
-          setImgError(true);
-        }}
-        onLoad={() => {
-          console.log('Regular img loaded successfully:', src);
-        }}
-        {...props}
-      />
-    );
-  }
-
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      className={className}
-      style={{ width, height, objectFit: 'cover' }}
-      onError={(e) => {
-        console.error('Next Image failed, falling back to img:', src);
-        setUseNextImage(false);
-      }}
-      onLoad={() => {
-        console.log('Next Image loaded successfully:', src);
-      }}
-      {...props}
-    />
   );
 }
 
@@ -818,12 +773,13 @@ export function ProductsTab() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-12 w-12 flex-shrink-0">
-                          <ImageWithFallback
-                            src={auction.images?.[0]?.url ? `http://localhost:5000${auction.images[0].url}` : `https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center`}
+                          <Image
+                            src={auction.images?.[0]?.url ? `${process.env.NEXT_PUBLIC_API_URL}${auction.images[0].url}` : `https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=100&fit=crop&crop=center`}
                             alt={auction.title}
                             width={48}
                             height={48}
                             className="rounded-lg"
+                            style={{ width: 48, height: 48, objectFit: 'cover' }}
                           />
                         </div>
                         <div className="ml-4">

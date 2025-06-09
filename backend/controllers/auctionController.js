@@ -395,12 +395,12 @@ const updateAuction = async (req, res) => {
     }
 
     // Check if auction can be updated (only DRAFT or SCHEDULED auctions)
-    if (!['DRAFT', 'SCHEDULED'].includes(auction.status)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot update auction that is already active or completed'
-      });
-    }
+    // if (!['DRAFT', 'SCHEDULED'].includes(auction.status)) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'Cannot update auction that is already active or completed'
+    //   });
+    // }
 
     const {
       title,

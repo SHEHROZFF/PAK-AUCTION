@@ -5,8 +5,8 @@
 
 class DashboardManager {
   constructor() {
-    // this.baseURL = 'http://localhost:5000/api';
-    this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
+    this.baseURL = 'http://localhost:5000/api';
+    // this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
     this.currentUser = null;
     this.dashboardData = null;
     this.init();

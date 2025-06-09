@@ -178,7 +178,7 @@ export function SettingsTab() {
         </div>
 
         {/* Logo Settings */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        {/* <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Logo & Branding</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -206,10 +206,10 @@ export function SettingsTab() {
               <p className="text-xs text-gray-500 mt-1">Recommended size: 32x32px</p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Auction Settings */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        {/* <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Auction Settings</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -300,7 +300,7 @@ export function SettingsTab() {
               </label>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Save Button */}
         <div className="flex justify-end">

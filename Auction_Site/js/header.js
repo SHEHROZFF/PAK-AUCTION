@@ -11,6 +11,176 @@ class HeaderManager {
   init() {
     this.renderHeader();
     this.bindHeaderEvents();
+    
+    // Listen for auth status changes
+    this.setupAuthListener();
+  }
+
+  // Setup authentication listener
+  setupAuthListener() {
+    // Check auth status periodically and update header
+    const checkAuthAndUpdate = () => {
+      if (window.authManager) {
+        this.updateAuthSection();
+      }
+    };
+    
+    // Initial check
+    setTimeout(checkAuthAndUpdate, 500);
+    
+    // Periodic checks
+    setInterval(checkAuthAndUpdate, 5000);
+  }
+
+  // Update authentication section of header
+  updateAuthSection() {
+    const authSection = document.getElementById('auth-section');
+    const mobileAuthSection = document.getElementById('mobile-auth-section');
+    
+    // Also update hero section dashboard button
+    const dashboardHeroBtn = document.getElementById('dashboard-hero-btn');
+    const registerHeroBtn = document.getElementById('register-hero-btn');
+    
+    if (!authSection || !mobileAuthSection) return;
+    
+    if (window.authManager.currentUser) {
+      // User is logged in - show profile dropdown
+      const user = window.authManager.currentUser;
+      const userMenuHTML = `
+        <div class="relative">
+          <button id="user-menu-button" class="flex items-center space-x-2 text-gray-700 hover:text-primary-600 focus:outline-none">
+            <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+              <span class="text-sm font-medium text-primary-600">${user.firstName ? user.firstName.charAt(0) : 'U'}</span>
+            </div>
+            <span class="hidden md:block font-medium">${user.firstName || 'User'}</span>
+            <i class="fas fa-chevron-down text-xs"></i>
+          </button>
+          
+          <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
+            <div class="py-1">
+              <div class="px-4 py-2 border-b border-gray-200">
+                <p class="text-sm font-medium text-gray-900">${user.firstName || ''} ${user.lastName || ''}</p>
+                <p class="text-xs text-gray-500">${user.email || ''}</p>
+              </div>
+              <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                <i class="fas fa-user mr-2"></i>My Profile
+              </a>
+              <a href="dashboard.html" id="dashboard-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+              </a>
+              <a href="products.html?filter=my-auctions" id="my-auctions-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                <i class="fas fa-gavel mr-2"></i>My Auctions
+              </a>
+              <a href="products.html?filter=my-bids" id="my-bids-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                <i class="fas fa-hand-paper mr-2"></i>My Bids
+              </a>
+              <a href="products.html?filter=watchlist" id="watchlist-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                <i class="fas fa-heart mr-2"></i>Watchlist
+              </a>
+              <div class="border-t border-gray-200"></div>
+              <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      authSection.innerHTML = userMenuHTML;
+      
+      // Mobile auth section
+      mobileAuthSection.innerHTML = `
+        <div class="flex flex-col space-y-3 pt-2 border-t border-gray-200">
+          <a href="profile.html" class="text-gray-700 hover:text-primary-600 font-medium py-2">
+            <i class="fas fa-user mr-2"></i>My Profile
+          </a>
+          <a href="dashboard.html" class="text-gray-700 hover:text-primary-600 font-medium py-2">
+            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+          </a>
+          <button id="mobile-logout-btn" class="text-left text-red-600 hover:text-red-700 font-medium py-2">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+          </button>
+        </div>
+      `;
+      
+      // Show dashboard button in hero section, hide register button
+      if (dashboardHeroBtn) {
+        dashboardHeroBtn.classList.remove('hidden');
+      }
+      if (registerHeroBtn) {
+        registerHeroBtn.textContent = 'Start Selling';
+        registerHeroBtn.href = 'sell-product.html';
+      }
+      
+      // Bind user menu events
+      this.bindUserMenuEvents();
+      
+    } else {
+      // User is not logged in - show login/register buttons
+      authSection.innerHTML = `
+        <div class="flex items-center space-x-4">
+          <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
+          <a href="sell-product.html" class="sell-your-product_Navbar">
+            <span class="sell-your-product_Navbar-text-container">
+              <span class="sell-your-product_Navbar-text">Sell Product</span>
+            </span>
+          </a>
+        </div>
+      `;
+      
+      mobileAuthSection.innerHTML = `
+        <div class="flex space-x-4 pt-2 border-t border-gray-200">
+          <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
+          <a href="register.html" class="bg-primary-600 text-white px-4 py-2 rounded-full hover:bg-primary-700 transition duration-300">Register</a>
+        </div>
+      `;
+      
+      // Hide dashboard button in hero section, show register button
+      if (dashboardHeroBtn) {
+        dashboardHeroBtn.classList.add('hidden');
+      }
+      if (registerHeroBtn) {
+        registerHeroBtn.textContent = 'Start Bidding';
+        registerHeroBtn.href = 'register.html';
+      }
+    }
+  }
+
+  // Bind user menu events
+  bindUserMenuEvents() {
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userDropdown = document.getElementById('user-dropdown');
+    const logoutBtn = document.getElementById('logout-btn');
+    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+
+    // Toggle dropdown
+    if (userMenuButton && userDropdown) {
+      userMenuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userDropdown.classList.toggle('hidden');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+          userDropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    // Handle logout
+    [logoutBtn, mobileLogoutBtn].forEach(btn => {
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (window.authManager) {
+            window.authManager.handleLogout();
+          }
+        });
+      }
+    });
+
+    // Dashboard and other links are now proper href links, no need for click handlers
   }
 
   renderHeader() {
@@ -113,17 +283,16 @@ class HeaderManager {
             </div>
 
             <!-- Auth Buttons -->
-            <div class="hidden md:flex items-center space-x-4">
-              <a
-                href="login.html"
-                class="text-gray-700 hover:text-primary-600 font-medium"
-                >Login</a
-              >
-              <a href="sell-product.html" class="sell-your-product_Navbar">
-                <span class="sell-your-product_Navbar-text-container">
-                  <span class="sell-your-product_Navbar-text">Sell Product</span>
-                </span>
-              </a>
+            <div id="auth-section" class="hidden md:flex items-center space-x-4">
+              <!-- Will be populated by updateAuthSection() -->
+              <div class="flex items-center space-x-4">
+                <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
+                <a href="sell-product.html" class="sell-your-product_Navbar">
+                  <span class="sell-your-product_Navbar-text-container">
+                    <span class="sell-your-product_Navbar-text">Sell Product</span>
+                  </span>
+                </a>
+              </div>
             </div>
 
             <!-- Mobile Menu Button -->
@@ -221,17 +390,12 @@ class HeaderManager {
                 class="text-gray-700 hover:text-primary-600 font-medium py-2"
                 >Contact</a
               >
-              <div class="flex space-x-4 pt-2">
-                <a
-                  href="login.html"
-                  class="text-gray-700 hover:text-primary-600 font-medium"
-                  >Login</a
-                >
-                <a
-                  href="register.html"
-                  class="bg-primary-600 text-white px-4 py-2 rounded-full hover:bg-primary-700 transition duration-300"
-                  >Register</a
-                >
+              <div id="mobile-auth-section">
+                <!-- Will be populated by updateAuthSection() -->
+                <div class="flex space-x-4 pt-2 border-t border-gray-200">
+                  <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
+                  <a href="register.html" class="bg-primary-600 text-white px-4 py-2 rounded-full hover:bg-primary-700 transition duration-300">Register</a>
+                </div>
               </div>
             </nav>
           </div>

@@ -543,6 +543,7 @@ const getProfile = async (req, res) => {
           lastName: user.lastName,
           phone: user.phone,
           dateOfBirth: user.dateOfBirth,
+          profilePhoto: user.profilePhoto,
           role: user.role,
           isEmailVerified: user.isEmailVerified,
           isActive: user.isActive,

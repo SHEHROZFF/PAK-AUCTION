@@ -66,6 +66,10 @@ const userSchema = new mongoose.Schema({
   marketingEmails: {
     type: Boolean,
     default: false
+  },
+  profilePhoto: {
+    type: String,
+    trim: true
   }
 }, {
   timestamps: true

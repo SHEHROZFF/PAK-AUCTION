@@ -876,14 +876,14 @@ class AuthManager {
           <div class="text-gray-500">${this.currentUser.email}</div>
           <div class="text-xs text-gray-400">${this.currentUser.role}</div>
         </div>
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="authManager.showProfile()">
+        <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
           <i class="fas fa-user mr-2"></i>Profile
         </a>
         ${!this.currentUser.isEmailVerified ? 
           '<a href="#" class="block px-4 py-2 text-sm text-orange-600 hover:bg-gray-100 resend-verification-btn" onclick="authManager.handleResendVerification()"><i class="fas fa-envelope mr-2"></i>Verify Email</a>' : 
           ''
         }
-        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onclick="authManager.showSettings()">
+        <a href="profile.html?tab=security" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
           <i class="fas fa-cog mr-2"></i>Settings
         </a>
         <div class="border-t border-gray-100"></div>
@@ -969,19 +969,19 @@ class AuthManager {
     }
   }
 
-  // Show user profile (placeholder)
+  // Show user profile (navigate to profile page)
   showProfile() {
-    this.showMessage('Profile page coming soon! Current user: ' + this.currentUser.firstName, 'info');
+    window.location.href = 'profile.html';
   }
 
-  // Show dashboard (placeholder)
+  // Show dashboard (navigate to dashboard page)
   showDashboard() {
-    this.showMessage('Dashboard coming soon!', 'info');
+    window.location.href = 'dashboard.html';
   }
 
-  // Show settings (placeholder)
+  // Show settings (navigate to profile security tab)
   showSettings() {
-    this.showMessage('Settings page coming soon!', 'info');
+    window.location.href = 'profile.html?tab=security';
   }
 
   // Show message to user
@@ -1046,10 +1046,14 @@ class AuthManager {
     const defaultOptions = {
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })
       }
     };
+
+    // Only add Content-Type for non-FormData requests
+    if (!(options.body instanceof FormData)) {
+      defaultOptions.headers['Content-Type'] = 'application/json';
+    }
 
     const mergedOptions = {
       ...defaultOptions,
@@ -1230,10 +1234,14 @@ window.makeAuthenticatedRequest = async function(url, options = {}) {
     const defaultOptions = {
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` })
       }
     };
+
+    // Only add Content-Type for non-FormData requests
+    if (!(options.body instanceof FormData)) {
+      defaultOptions.headers['Content-Type'] = 'application/json';
+    }
 
     const mergedOptions = {
       ...defaultOptions,

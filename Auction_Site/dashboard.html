@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PakAuction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1'
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-700">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <p class="mt-4 text-gray-600">Loading Dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Header will be dynamically loaded here -->
+    <div id="header-container"></div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Dashboard Header -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="text-center md:text-left">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                        <i class="fas fa-tachometer-alt text-primary-600 mr-3"></i>Dashboard
+                    </h1>
+                    <p id="dashboard-welcome" class="text-gray-600">Welcome back! Here's your auction activity overview</p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="sell-product.html" class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Sell Product
+                    </a>
+                    <a href="profile.html" class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-user mr-2"></i>My Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90 mb-1">Active Auctions</p>
+                        <p id="stat-active-auctions" class="text-3xl font-bold">0</p>
+                    </div>
+                    <i class="fas fa-gavel text-4xl opacity-80"></i>
+                </div>
+                <div class="mt-4 text-sm opacity-90">
+                    <i class="fas fa-arrow-up mr-1"></i>Your live auctions
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90 mb-1">Won Auctions</p>
+                        <p id="stat-won-auctions" class="text-3xl font-bold">0</p>
+                    </div>
+                    <i class="fas fa-trophy text-4xl opacity-80"></i>
+                </div>
+                <div class="mt-4 text-sm opacity-90">
+                    <i class="fas fa-check mr-1"></i>Successfully won
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90 mb-1">Total Bids</p>
+                        <p id="stat-total-bids" class="text-3xl font-bold">0</p>
+                    </div>
+                    <i class="fas fa-hand-paper text-4xl opacity-80"></i>
+                </div>
+                <div class="mt-4 text-sm opacity-90">
+                    <i class="fas fa-chart-line mr-1"></i>Bids placed
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-90 mb-1">Watchlist</p>
+                        <p id="stat-watchlist" class="text-3xl font-bold">0</p>
+                    </div>
+                    <i class="fas fa-heart text-4xl opacity-80"></i>
+                </div>
+                <div class="mt-4 text-sm opacity-90">
+                    <i class="fas fa-eye mr-1"></i>Items watching
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Recent Auctions -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">
+                        <i class="fas fa-gavel text-primary-600 mr-2"></i>My Recent Auctions
+                    </h2>
+                    <a href="products.html?filter=my-auctions" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                <div id="recent-auctions" class="space-y-4">
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Loading recent auctions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Bids -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">
+                        <i class="fas fa-hand-paper text-primary-600 mr-2"></i>My Recent Bids
+                    </h2>
+                    <a href="products.html?filter=my-bids" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                <div id="recent-bids" class="space-y-4">
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Loading recent bids...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Watchlist and Notifications -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Watchlist Preview -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">
+                        <i class="fas fa-heart text-primary-600 mr-2"></i>Watchlist
+                    </h2>
+                    <a href="products.html?filter=watchlist" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+                <div id="watchlist-preview" class="space-y-4">
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Loading watchlist...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                    <i class="fas fa-bolt text-primary-600 mr-2"></i>Quick Actions
+                </h2>
+                <div class="space-y-4">
+                    <a href="sell-product.html" class="block w-full bg-primary-600 text-white px-4 py-3 rounded-lg hover:bg-primary-700 transition-colors text-center">
+                        <i class="fas fa-plus mr-2"></i>Sell Product
+                    </a>
+                    <a href="products.html" class="block w-full border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors text-center">
+                        <i class="fas fa-search mr-2"></i>Browse Auctions
+                    </a>
+                    <a href="profile.html" class="block w-full border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors text-center">
+                        <i class="fas fa-user mr-2"></i>Edit Profile
+                    </a>
+                    <a href="profile.html?tab=security" class="block w-full border border-gray-300 text-gray-700 px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors text-center">
+                        <i class="fas fa-shield-alt mr-2"></i>Security Settings
+                    </a>
+                </div>
+
+                <!-- Recent Notifications -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">
+                        <i class="fas fa-bell text-primary-600 mr-2"></i>Recent Activity
+                    </h3>
+                    <div id="recent-notifications" class="space-y-3">
+                        <div class="text-center py-4 text-gray-500 text-sm">
+                            <i class="fas fa-info-circle mb-2"></i>
+                            <p>No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be dynamically loaded here -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Scripts -->
+    <script src="js/header.js"></script>
+    <script src="js/footer.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+
+    <script>
+        // Loader
+        window.addEventListener("load", () => {
+            setTimeout(() => {
+                const loader = document.getElementById("loader");
+                loader.classList.add("opacity-0");
+                setTimeout(() => {
+                    loader.style.display = "none";
+                }, 700);
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

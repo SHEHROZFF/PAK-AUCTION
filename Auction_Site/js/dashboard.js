@@ -1,6 +1,6 @@
 /**
- * User Dashboard - Full API Integration
- * Shows user's auctions, bids, watchlist, profile info
+ * Professional Dashboard Manager
+ * Handles all dashboard functionality with proper API integration
  */
 
 class DashboardManager {
@@ -8,484 +8,566 @@ class DashboardManager {
     // this.baseURL = 'http://localhost:5000/api';
     this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
     this.currentUser = null;
-    this.userAuctions = [];
-    this.userBids = [];
-    this.watchlist = [];
-    this.notifications = [];
-    this.currentTab = 'overview';
+    this.dashboardData = null;
     this.init();
   }
 
   async init() {
-    console.log('🚀 Initializing Dashboard...');
+    console.log('🎯 Initializing Professional Dashboard Manager...');
     
-    // Check authentication
-    if (!this.checkAuthentication()) {
-      window.location.href = 'login.html';
+    // Wait for auth manager to be ready
+    await this.waitForAuth();
+    
+    if (!this.currentUser) {
+      this.redirectToLogin();
       return;
     }
 
-    // Load all dashboard data
-    await Promise.all([
-      this.loadUserProfile(),
-      this.loadUserAuctions(),
-      this.loadUserBids(),
-      this.loadWatchlist(),
-      this.loadNotifications()
-    ]);
+    // Load dashboard data
+    await this.loadDashboardData();
 
-    // Setup event listeners
+    // Bind event listeners
     this.bindEventListeners();
     
-    // Initialize tabs
-    this.initTabs();
+    console.log('✅ Dashboard Manager initialized successfully');
   }
 
-  checkAuthentication() {
-    const token = localStorage.getItem('accessToken');
-    if (!token) return false;
+  async waitForAuth() {
+    return new Promise((resolve) => {
+      const checkAuth = () => {
+        if (window.authManager && window.authManager.isInitialized) {
+          this.currentUser = window.authManager.currentUser;
+          resolve();
+        } else {
+          setTimeout(checkAuth, 100);
+        }
+      };
+      checkAuth();
+    });
+  }
+
+  redirectToLogin() {
+    console.log('❌ User not authenticated, redirecting to login');
+    window.location.href = 'login.html';
+      }
+
+  async loadDashboardData() {
+    console.log('📊 Loading complete dashboard data...');
     
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      this.currentUser = JSON.parse(userInfo);
+    // Update welcome message
+    const welcomeEl = document.getElementById('dashboard-welcome');
+    if (welcomeEl) {
+      welcomeEl.textContent = `Welcome back, ${this.currentUser.firstName}! Here's your auction activity overview`;
+      }
+
+    try {
+      // Show loading states
+      this.showLoadingStates();
+      
+      // Load dashboard data from backend
+      const response = await this.makeAuthenticatedRequest('/users/dashboard');
+
+      if (response.success) {
+        this.dashboardData = response.data;
+        console.log('✅ Dashboard data loaded:', this.dashboardData);
+        
+        // Update all dashboard sections
+        this.updateStatistics();
+        this.displayRecentAuctions();
+        this.displayRecentBids();
+        this.loadWatchlistPreview();
+        this.loadRecentNotifications();
+      } else {
+        throw new Error(response.message || 'Failed to load dashboard data');
+      }
+    } catch (error) {
+      console.error('❌ Error loading dashboard data:', error);
+      this.showError('Failed to load dashboard data. Please refresh the page.');
     }
+  }
+
+  showLoadingStates() {
+    // Show loading for all sections
+    const loadingHTML = `
+      <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+        <p>Loading...</p>
+      </div>
+    `;
     
-    return true;
+    ['recent-auctions', 'recent-bids', 'watchlist-preview', 'recent-notifications'].forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.innerHTML = loadingHTML;
+      }
+    });
   }
 
-  async loadUserProfile() {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${this.baseURL}/auth/profile`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+  updateStatistics() {
+    const stats = this.dashboardData?.stats || {};
 
-      if (response.ok) {
-        const data = await response.json();
-        this.currentUser = data.data.user;
-        this.updateUserInfo();
-        console.log('✅ User profile loaded');
+    // Animate statistics
+    const elements = [
+      { id: 'stat-active-auctions', value: stats.activeAuctions || 0 },
+      { id: 'stat-won-auctions', value: stats.wonAuctions || 0 },
+      { id: 'stat-total-bids', value: stats.totalBids || 0 },
+      { id: 'stat-watchlist', value: stats.watchlistItems || 0 }
+    ];
+    
+    elements.forEach(({ id, value }) => {
+      const element = document.getElementById(id);
+      if (element) {
+        this.animateNumber(element, 0, value);
       }
-    } catch (error) {
-      console.error('❌ Error loading profile:', error);
+    });
+  }
+
+  animateNumber(element, start, end) {
+    const duration = 1500;
+    const startTime = performance.now();
+    
+    const updateNumber = (currentTime) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(start + (end - start) * easeOut);
+      element.textContent = current;
+      
+      if (progress < 1) {
+        requestAnimationFrame(updateNumber);
+  }
+    };
+    
+    requestAnimationFrame(updateNumber);
+  }
+
+  displayRecentAuctions() {
+    const container = document.getElementById('recent-auctions');
+    if (!container) return;
+
+    const auctions = this.dashboardData?.recentAuctions || [];
+    
+    if (auctions.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-12 text-gray-500">
+          <i class="fas fa-store text-4xl mb-4 text-gray-300"></i>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No auctions yet</h3>
+          <p class="text-sm mb-6">Start selling your products to see them here</p>
+          <a href="sell-product.html" class="inline-flex items-center bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors">
+            <i class="fas fa-plus mr-2"></i>Sell Your First Product
+          </a>
+        </div>
+      `;
+      return;
     }
+
+    container.innerHTML = auctions.map(auction => {
+      const mainImage = auction.images && auction.images.length > 0 
+        ? `${this.baseURL.replace('/api', '')}${auction.images[0].url}`
+        : 'images/placeholder.jpg';
+      
+      return `
+        <div class="group flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-primary-300 transition-all cursor-pointer">
+          <div class="relative">
+            <img src="${mainImage}" alt="${auction.title}" class="w-16 h-16 object-cover rounded-lg">
+            <div class="absolute -top-1 -right-1">
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ${this.getStatusColor(auction.status)}">
+                ${auction.status}
+              </span>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">${auction.title}</h3>
+            <div class="flex items-center space-x-4 mt-1">
+              <span class="text-sm text-gray-600">Starting: $${auction.startingBid}</span>
+              <span class="text-sm text-gray-600">Current: $${auction.currentBid || auction.startingBid}</span>
+            </div>
+            <div class="flex items-center space-x-4 mt-1">
+              <span class="text-xs text-gray-500">
+                <i class="fas fa-hand-paper mr-1"></i>${auction._count?.bids || 0} bids
+              </span>
+              <span class="text-xs text-gray-500">
+                <i class="fas fa-heart mr-1"></i>${auction._count?.watchlist || 0} watching
+              </span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-medium text-gray-900">
+              ${this.formatCurrency(auction.currentBid || auction.startingBid)}
+            </p>
+            <p class="text-xs text-gray-500">
+              ${auction.status === 'ACTIVE' ? `Ends ${this.formatDate(auction.endTime)}` : this.formatDate(auction.createdAt)}
+            </p>
+          </div>
+      </div>
+    `;
+    }).join('');
   }
 
-  async loadUserAuctions() {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${this.baseURL}/users/auctions`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+  displayRecentBids() {
+    const container = document.getElementById('recent-bids');
+    if (!container) return;
 
-      if (response.ok) {
-        const data = await response.json();
-        this.userAuctions = data.data.auctions;
-        this.renderUserAuctions();
-        console.log('✅ User auctions loaded');
-      }
-    } catch (error) {
-      console.error('❌ Error loading auctions:', error);
+    const bids = this.dashboardData?.recentBids || [];
+
+    if (bids.length === 0) {
+    container.innerHTML = `
+        <div class="text-center py-12 text-gray-500">
+          <i class="fas fa-hand-paper text-4xl mb-4 text-gray-300"></i>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No bids yet</h3>
+          <p class="text-sm mb-6">Start bidding on products to see your activity here</p>
+          <a href="products.html" class="inline-flex items-center border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <i class="fas fa-search mr-2"></i>Browse Products
+          </a>
+      </div>
+    `;
+      return;
     }
+
+    container.innerHTML = bids.map(bid => {
+      const auction = bid.auction;
+      const mainImage = auction.images && auction.images.length > 0 
+        ? `${this.baseURL.replace('/api', '')}${auction.images[0].url}`
+        : 'images/placeholder.jpg';
+      
+      const isWinning = auction.currentBid === bid.amount;
+    
+    return `
+        <div class="group flex items-center space-x-4 p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-primary-300 transition-all cursor-pointer">
+          <div class="relative">
+            <img src="${mainImage}" alt="${auction.title}" class="w-16 h-16 object-cover rounded-lg">
+            ${isWinning ? `
+              <div class="absolute -top-1 -right-1">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  <i class="fas fa-crown mr-1"></i>Winning
+            </span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">${auction.title}</h3>
+            <div class="flex items-center space-x-4 mt-1">
+              <span class="text-sm ${isWinning ? 'text-green-600 font-medium' : 'text-gray-600'}">
+                Your bid: $${bid.amount}
+              </span>
+              <span class="text-sm text-gray-600">Current: $${auction.currentBid}</span>
+            </div>
+            <div class="flex items-center space-x-2 mt-1">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${this.getStatusColor(auction.status)}">
+                ${auction.status}
+              </span>
+              <span class="text-xs text-gray-500">${this.formatDate(bid.createdAt)}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-medium ${isWinning ? 'text-green-600' : 'text-gray-900'}">
+              ${isWinning ? 'WINNING' : 'OUTBID'}
+            </p>
+            <p class="text-xs text-gray-500">
+              ${auction.status === 'ACTIVE' ? `Ends ${this.formatDate(auction.endTime)}` : 'Auction ended'}
+            </p>
+        </div>
+      </div>
+    `;
+    }).join('');
   }
 
-  async loadUserBids() {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${this.baseURL}/users/bids`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+  async loadWatchlistPreview() {
+    const container = document.getElementById('watchlist-preview');
+    if (!container) return;
 
-      if (response.ok) {
-        const data = await response.json();
-        this.userBids = data.data.bids;
-        this.renderUserBids();
-        console.log('✅ User bids loaded');
-      }
-    } catch (error) {
-      console.error('❌ Error loading bids:', error);
-    }
+    try {
+      const response = await this.makeAuthenticatedRequest('/users/watchlist?limit=4');
+      
+      if (response.success) {
+        const watchlist = response.data.watchlist || [];
+        
+        if (watchlist.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-12 text-gray-500">
+              <i class="fas fa-heart text-4xl mb-4 text-gray-300"></i>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">No items in watchlist</h3>
+              <p class="text-sm mb-6">Add products to your watchlist to track them</p>
+              <a href="products.html" class="inline-flex items-center border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <i class="fas fa-search mr-2"></i>Browse Products
+          </a>
+      </div>
+    `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${watchlist.map(item => {
+              const auction = item.auction;
+              const mainImage = auction.images && auction.images.length > 0 
+                ? `${this.baseURL.replace('/api', '')}${auction.images[0].url}`
+                : 'images/placeholder.jpg';
+    
+    return `
+                <div class="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-md hover:border-primary-300 transition-all cursor-pointer">
+                  <div class="relative">
+                    <img src="${mainImage}" alt="${auction.title}" class="w-full h-32 object-cover">
+                    <button onclick="dashboardManager.removeFromWatchlist('${item.id}')" class="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow-md hover:bg-red-50 transition-colors">
+                      <i class="fas fa-heart text-red-500 hover:text-red-600"></i>
+                    </button>
+                  </div>
+                  <div class="p-3">
+                    <h4 class="font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">${auction.title}</h4>
+                    <div class="flex justify-between items-center mt-2">
+                      <span class="text-sm font-medium text-primary-600">$${auction.currentBid || auction.startingBid}</span>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${this.getStatusColor(auction.status)}">
+                        ${auction.status}
+                      </span>
+          </div>
+                    ${auction.status === 'ACTIVE' ? `
+                      <p class="text-xs text-gray-500 mt-1">Ends ${this.formatDate(auction.endTime)}</p>
+                    ` : ''}
+        </div>
+      </div>
+    `;
+            }).join('')}
+      </div>
+    `;
   }
-
-  async loadWatchlist() {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${this.baseURL}/users/watchlist`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        this.watchlist = data.data.watchlist;
-        this.renderWatchlist();
-        console.log('✅ Watchlist loaded');
-      }
     } catch (error) {
       console.error('❌ Error loading watchlist:', error);
+      container.innerHTML = `
+        <div class="text-center py-8 text-red-500">
+          <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+          <p>Failed to load watchlist</p>
+        </div>
+      `;
     }
   }
 
-  async loadNotifications() {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${this.baseURL}/users/notifications`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+  async loadRecentNotifications() {
+    const container = document.getElementById('recent-notifications');
+    if (!container) return;
 
-      if (response.ok) {
-        const data = await response.json();
-        this.notifications = data.data.notifications;
-        this.renderNotifications();
-        console.log('✅ Notifications loaded');
+    try {
+      const response = await this.makeAuthenticatedRequest('/users/notifications?limit=5');
+      
+      if (response.success) {
+        const notifications = response.data.notifications || [];
+        
+        if (notifications.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-4 text-gray-500 text-sm">
+              <i class="fas fa-bell-slash text-2xl mb-2 text-gray-300"></i>
+              <p>No recent activity</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = notifications.map(notification => `
+          <div class="flex items-start space-x-3 p-3 ${notification.isRead ? 'bg-gray-50' : 'bg-blue-50'} rounded-lg">
+            <div class="flex-shrink-0">
+              <i class="fas ${this.getNotificationIcon(notification.type)} text-primary-600"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm text-gray-900">${notification.message}</p>
+              <p class="text-xs text-gray-500 mt-1">${this.formatDate(notification.createdAt)}</p>
+            </div>
+          </div>
+        `).join('');
       }
     } catch (error) {
       console.error('❌ Error loading notifications:', error);
-    }
-  }
-
-  updateUserInfo() {
-    if (!this.currentUser) return;
-
-    // Update user name displays
-    document.querySelectorAll('.user-name').forEach(el => {
-      el.textContent = `${this.currentUser.firstName} ${this.currentUser.lastName}`;
-    });
-
-    // Update user email displays
-    document.querySelectorAll('.user-email').forEach(el => {
-      el.textContent = this.currentUser.email;
-    });
-
-    // Update user avatar displays
-    document.querySelectorAll('.user-avatar').forEach(el => {
-      el.textContent = this.currentUser.firstName.charAt(0);
-    });
-
-    // Update profile form if exists
-    this.updateProfileForm();
-  }
-
-  updateProfileForm() {
-    const profileForm = document.getElementById('profile-form');
-    if (!profileForm || !this.currentUser) return;
-
-    const fields = ['firstName', 'lastName', 'username', 'email', 'phone'];
-    fields.forEach(field => {
-      const input = profileForm.querySelector(`[name="${field}"]`);
-      if (input && this.currentUser[field]) {
-        input.value = this.currentUser[field];
-      }
-    });
-  }
-
-  renderUserAuctions() {
-    const container = document.getElementById('user-auctions');
-    if (!container) return;
-
-    if (this.userAuctions.length === 0) {
-      container.innerHTML = this.getEmptyState('auctions', 'You haven\'t created any auctions yet', 'sell-product.html', 'Create Auction');
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        ${this.userAuctions.map(auction => this.renderAuctionCard(auction)).join('')}
-      </div>
-    `;
-  }
-
-  renderUserBids() {
-    const container = document.getElementById('user-bids');
-    if (!container) return;
-
-    if (this.userBids.length === 0) {
-      container.innerHTML = this.getEmptyState('bids', 'You haven\'t placed any bids yet', 'products.html', 'Browse Auctions');
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="space-y-4">
-        ${this.userBids.map(bid => this.renderBidItem(bid)).join('')}
-      </div>
-    `;
-  }
-
-  renderWatchlist() {
-    const container = document.getElementById('watchlist');
-    if (!container) return;
-
-    if (this.watchlist.length === 0) {
-      container.innerHTML = this.getEmptyState('watchlist', 'Your watchlist is empty', 'products.html', 'Browse Auctions');
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        ${this.watchlist.map(item => this.renderAuctionCard(item.auction)).join('')}
-      </div>
-    `;
-  }
-
-  renderNotifications() {
-    const container = document.getElementById('notifications');
-    if (!container) return;
-
-    if (this.notifications.length === 0) {
-      container.innerHTML = this.getEmptyState('notifications', 'No notifications yet', null, null);
-      return;
-    }
-
-    container.innerHTML = `
-      <div class="space-y-3">
-        ${this.notifications.map(notification => this.renderNotificationItem(notification)).join('')}
-      </div>
-    `;
-  }
-
-  renderAuctionCard(auction) {
-    const imageUrl = auction.images?.[0]?.url || 'https://via.placeholder.com/300x200?text=No+Image';
-    const statusColor = this.getStatusColor(auction.status);
-    
-    return `
-      <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-        <img src="${imageUrl}" alt="${auction.title}" class="w-full h-48 object-cover">
-        <div class="p-4">
-          <div class="flex justify-between items-start mb-2">
-            <h3 class="font-semibold text-lg line-clamp-2">${auction.title}</h3>
-            <span class="px-2 py-1 rounded-full text-xs font-medium bg-${statusColor}-100 text-${statusColor}-800">
-              ${auction.status}
-            </span>
-          </div>
-          <p class="text-gray-600 text-sm mb-3 line-clamp-2">${auction.description || ''}</p>
-          <div class="flex justify-between items-center mb-3">
-            <div>
-              <p class="text-sm text-gray-500">Current Bid</p>
-              <p class="font-bold text-lg">${auction.currentBid || auction.basePrice}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-sm text-gray-500">Bids</p>
-              <p class="font-medium">${auction.bidCount || 0}</p>
-            </div>
-          </div>
-          
-          <!-- Stats row with views and watchlist -->
-          <div class="flex items-center justify-between text-xs text-gray-500 mb-3">
-            <span class="flex items-center">
-              <i class="fas fa-eye mr-1"></i>
-              ${auction.viewCount || 0} views
-            </span>
-            <span class="flex items-center">
-              <i class="fas fa-heart mr-1"></i>
-              ${auction._count?.watchlist || 0} watching
-            </span>
-          </div>
-          <div class="flex space-x-2">
-            <a href="product-detail.html?id=${auction.id}" 
-               class="flex-1 bg-primary-600 text-white text-center py-2 rounded-lg hover:bg-primary-700 transition-colors">
-              View Details
-            </a>
-            ${auction.sellerId === this.currentUser?.id ? 
-              `<button onclick="editAuction('${auction.id}')" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                <i class="fas fa-edit"></i>
-              </button>` : ''
-            }
-          </div>
+      container.innerHTML = `
+        <div class="text-center py-4 text-red-500 text-sm">
+          <i class="fas fa-exclamation-triangle mb-2"></i>
+          <p>Failed to load notifications</p>
         </div>
-      </div>
-    `;
+      `;
+    }
   }
 
-  renderBidItem(bid) {
-    const auction = bid.auction;
-    const isWinning = bid.amount === auction.currentBid;
-    
-    return `
-      <div class="bg-white p-4 rounded-lg shadow-md border-l-4 ${isWinning ? 'border-green-500' : 'border-gray-300'}">
-        <div class="flex justify-between items-start">
-          <div class="flex-1">
-            <h3 class="font-semibold text-lg mb-1">${auction.title}</h3>
-            <div class="flex items-center space-x-4 text-sm text-gray-600">
-              <span>Your bid: <strong>$${bid.amount}</strong></span>
-              <span>Current bid: <strong>$${auction.currentBid || auction.basePrice}</strong></span>
-              <span class="px-2 py-1 rounded-full text-xs font-medium ${isWinning ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
-                ${isWinning ? 'Winning' : 'Outbid'}
-              </span>
-            </div>
-            <p class="text-xs text-gray-500 mt-1">Bid placed: ${new Date(bid.createdAt).toLocaleDateString()}</p>
-          </div>
-          <a href="product-detail.html?id=${auction.id}" class="ml-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-            View Auction
-          </a>
-        </div>
-      </div>
-    `;
-  }
-
-  renderNotificationItem(notification) {
-    const typeIcons = {
-      'BID_PLACED': 'fas fa-gavel',
-      'AUCTION_WON': 'fas fa-trophy',
-      'AUCTION_ENDED': 'fas fa-flag-checkered',
-      'OUTBID': 'fas fa-exclamation-triangle'
-    };
-    
-    return `
-      <div class="bg-white p-4 rounded-lg shadow-md ${notification.isRead ? 'opacity-75' : 'border-l-4 border-primary-500'}">
-        <div class="flex items-start space-x-3">
-          <i class="${typeIcons[notification.type] || 'fas fa-bell'} text-primary-600 mt-1"></i>
-          <div class="flex-1">
-            <p class="font-medium">${notification.title}</p>
-            <p class="text-gray-600 text-sm">${notification.message}</p>
-            <p class="text-xs text-gray-500 mt-1">${new Date(notification.createdAt).toLocaleDateString()}</p>
-          </div>
-          ${!notification.isRead ? 
-            `<button onclick="markAsRead('${notification.id}')" class="text-primary-600 hover:text-primary-800">
-              <i class="fas fa-check"></i>
-            </button>` : ''
-          }
-        </div>
-      </div>
-    `;
-  }
-
-  getEmptyState(type, message, link, linkText) {
-    return `
-      <div class="text-center py-12">
-        <i class="fas fa-${type === 'auctions' ? 'gavel' : type === 'bids' ? 'hand-holding-usd' : type === 'watchlist' ? 'heart' : 'bell'} text-6xl text-gray-300 mb-4"></i>
-        <h3 class="text-xl font-medium text-gray-600 mb-2">${message}</h3>
-        ${link ? `<a href="${link}" class="inline-block px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">${linkText}</a>` : ''}
-      </div>
-    `;
-  }
-
-  getStatusColor(status) {
-    const colors = {
-      'ACTIVE': 'green',
-      'ENDED': 'red',
-      'CANCELLED': 'gray',
-      'DRAFT': 'yellow'
-    };
-    return colors[status] || 'gray';
-  }
-
-  initTabs() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const targetTab = button.dataset.tab;
-        
-        // Update active tab button
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        
-        // Show target tab content
-        tabContents.forEach(content => {
-          content.style.display = content.id === targetTab ? 'block' : 'none';
-        });
-        
-        this.currentTab = targetTab;
+  async removeFromWatchlist(itemId) {
+    try {
+      const response = await this.makeAuthenticatedRequest(`/users/watchlist/${itemId}`, {
+        method: 'DELETE'
       });
-    });
+
+      if (response.success) {
+        this.showMessage('Removed from watchlist', 'success');
+        // Reload watchlist and update stats
+        this.loadWatchlistPreview();
+        this.loadDashboardData();
+      }
+    } catch (error) {
+      console.error('❌ Error removing from watchlist:', error);
+      this.showMessage('Failed to remove from watchlist', 'error');
+    }
   }
 
   bindEventListeners() {
-    // Profile form submission
-    const profileForm = document.getElementById('profile-form');
-    if (profileForm) {
-      profileForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        this.updateProfile();
-      });
-    }
+    // Add any additional event listeners here
+    console.log('🔗 Dashboard event listeners bound');
+  }
 
-    // Mark all notifications as read
-    const markAllReadBtn = document.getElementById('mark-all-read');
-    if (markAllReadBtn) {
-      markAllReadBtn.addEventListener('click', () => {
-        this.markAllNotificationsRead();
-      });
+  // Utility methods
+  getStatusColor(status) {
+    switch (status?.toUpperCase()) {
+      case 'ACTIVE':
+        return 'bg-green-100 text-green-800';
+      case 'SOLD':
+        return 'bg-blue-100 text-blue-800';
+      case 'EXPIRED':
+        return 'bg-red-100 text-red-800';
+      case 'PENDING':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   }
 
-  async updateProfile() {
-    try {
-      const formData = new FormData(document.getElementById('profile-form'));
-      const profileData = Object.fromEntries(formData);
-      
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${this.baseURL}/users/profile`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(profileData)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        this.currentUser = data.data.user;
-        localStorage.setItem('userInfo', JSON.stringify(this.currentUser));
-        this.showSuccess('Profile updated successfully!');
-      } else {
-        this.showError('Failed to update profile');
-      }
-    } catch (error) {
-      console.error('❌ Error updating profile:', error);
-      this.showError('Network error updating profile');
+  getNotificationIcon(type) {
+    switch (type?.toLowerCase()) {
+      case 'bid':
+        return 'fa-hand-paper';
+      case 'auction':
+        return 'fa-gavel';
+      case 'win':
+        return 'fa-trophy';
+      case 'outbid':
+        return 'fa-exclamation-triangle';
+      default:
+        return 'fa-bell';
     }
   }
 
-  async markAllNotificationsRead() {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${this.baseURL}/users/notifications/read-all`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        this.notifications.forEach(n => n.isRead = true);
-        this.renderNotifications();
-        this.showSuccess('All notifications marked as read');
-      }
-    } catch (error) {
-      console.error('❌ Error marking notifications read:', error);
-    }
-  }
-
-  showSuccess(message) {
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-    notification.textContent = message;
-    document.body.appendChild(notification);
+  formatDate(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.abs(now - date) / (1000 * 60 * 60);
     
-    setTimeout(() => notification.remove(), 3000);
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    } else if (diffInHours < 168) { // 7 days
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+    } else {
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+  }
+
+  formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
+  }
+
+  async makeAuthenticatedRequest(endpoint, options = {}) {
+    const token = localStorage.getItem('accessToken');
+    
+    const defaultOptions = {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include'
+    };
+
+    const mergedOptions = {
+      ...defaultOptions,
+      ...options,
+      headers: {
+        ...defaultOptions.headers,
+        ...options.headers
+      }
+    };
+
+    const response = await fetch(`${this.baseURL}${endpoint}`, mergedOptions);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+    }
+
+    return data;
   }
 
   showError(message) {
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-    notification.textContent = message;
-    document.body.appendChild(notification);
+    this.showMessage(message, 'error');
+  }
+
+  showMessage(message, type = 'info') {
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg max-w-sm transition-all duration-300 ${this.getMessageClass(type)}`;
+    messageDiv.innerHTML = `
+      <div class="flex items-center">
+        <i class="fas ${this.getMessageIcon(type)} mr-3"></i>
+        <span>${message}</span>
+        <button class="ml-4 text-white hover:text-gray-200" onclick="this.parentElement.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(messageDiv);
     
-    setTimeout(() => notification.remove(), 3000);
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (messageDiv.parentNode) {
+        messageDiv.remove();
+      }
+    }, 5000);
+  }
+
+  getMessageClass(type) {
+    switch (type) {
+      case 'success':
+        return 'bg-green-500 text-white';
+      case 'error':
+        return 'bg-red-500 text-white';
+      case 'warning':
+        return 'bg-yellow-500 text-white';
+      default:
+        return 'bg-blue-500 text-white';
+}
+  }
+
+  getMessageIcon(type) {
+    switch (type) {
+      case 'success':
+        return 'fa-check-circle';
+      case 'error':
+        return 'fa-exclamation-circle';
+      case 'warning':
+        return 'fa-exclamation-triangle';
+      default:
+        return 'fa-info-circle';
+    }
   }
 }
 
-// Global functions
-function editAuction(auctionId) {
-  window.location.href = `sell-product.html?edit=${auctionId}`;
-}
-
-function markAsRead(notificationId) {
-  // Implementation for marking single notification as read
-  console.log('Mark notification as read:', notificationId);
-}
-
-// Initialize dashboard
+// Initialize dashboard manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new DashboardManager();
+  // Wait for auth manager to be ready
+  const initDashboard = () => {
+    if (window.authManager) {
+      window.dashboardManager = new DashboardManager();
+    } else {
+      setTimeout(initDashboard, 100);
+    }
+  };
+  
+  initDashboard();
 }); 

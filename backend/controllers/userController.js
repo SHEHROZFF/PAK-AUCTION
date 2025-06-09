@@ -1,4 +1,6 @@
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
 const User = require('../models/User');
 const Auction = require('../models/Auction');
 const Category = require('../models/Category');
@@ -6,6 +8,25 @@ const Bid = require('../models/Bid');
 const Watchlist = require('../models/Watchlist');
 const Notification = require('../models/Notification');
 const AuctionImage = require('../models/AuctionImage');
+
+// Utility function to safely delete profile photo
+const deleteProfilePhoto = (photoPath) => {
+  try {
+    if (photoPath && typeof photoPath === 'string') {
+      const fullPath = path.join(process.cwd(), photoPath);
+      if (fs.existsSync(fullPath)) {
+        fs.unlinkSync(fullPath);
+        console.log('🗑️ Successfully deleted profile photo:', photoPath);
+        return true;
+      } else {
+        console.log('⚠️ Profile photo file not found:', fullPath);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error deleting profile photo:', photoPath, error);
+  }
+  return false;
+};
 
 // Get user dashboard data
 const getDashboard = async (req, res) => {
@@ -262,7 +283,16 @@ const getUserWatchlist = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { firstName, lastName, phone, dateOfBirth, marketingEmails } = req.body;
+    const { firstName, lastName, phone, dateOfBirth, marketingEmails, profilePhoto } = req.body;
+
+    // Get current user to check for existing profile photo
+    const currentUser = await User.findById(userId);
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
     const updateData = {};
     if (firstName) updateData.firstName = firstName;
@@ -270,16 +300,19 @@ const updateProfile = async (req, res) => {
     if (phone !== undefined) updateData.phone = phone;
     if (dateOfBirth) updateData.dateOfBirth = new Date(dateOfBirth);
     if (marketingEmails !== undefined) updateData.marketingEmails = marketingEmails;
+    
+    // Handle profile photo update with cleanup
+    if (profilePhoto !== undefined) {
+      // Delete old profile photo if it exists and is different
+      if (currentUser.profilePhoto && currentUser.profilePhoto !== profilePhoto) {
+        deleteProfilePhoto(currentUser.profilePhoto);
+      }
+      
+      updateData.profilePhoto = profilePhoto;
+    }
 
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true })
       .select('-password -refreshToken -emailVerificationToken -passwordResetToken');
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
 
     res.json({
       success: true,

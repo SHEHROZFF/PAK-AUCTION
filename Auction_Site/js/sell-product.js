@@ -5,8 +5,8 @@
 
 class SellProductManager {
   constructor() {
-    this.baseURL = 'http://localhost:5000/api';
-    // this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
+    // this.baseURL = 'http://localhost:5000/api';
+    this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
     this.selectedImages = [];
     this.maxImages = 5;
     this.maxFileSize = 5 * 1024 * 1024; // 5MB

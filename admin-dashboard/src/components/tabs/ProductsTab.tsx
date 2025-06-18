@@ -238,316 +238,498 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">
-          {auction ? 'Edit Auction' : 'Create New Auction'}
-        </h3>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-800 mb-3">Basic Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange('title', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                  minLength={3}
-                  maxLength={100}
-                />
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop with blur effect */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" />
+      
+      {/* Modal Container */}
+      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div className="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 sm:my-8 sm:w-full sm:max-w-5xl">
+          {/* Modal Header */}
+          <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 sm:px-8 sm:py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
+                    <i className="fas fa-gavel text-white text-lg"></i>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold leading-6 text-white">
+                    {auction ? 'Edit Auction' : 'Create New Auction'}
+                  </h3>
+                  <p className="text-sm text-indigo-100">
+                    {auction ? 'Update auction details and settings' : 'Set up a new auction listing'}
+                  </p>
+                </div>
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description *
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  rows={4}
-                  required
-                  minLength={10}
-                  maxLength={2000}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Brand
-                </label>
-                <input
-                  type="text"
-                  value={formData.brand}
-                  onChange={(e) => handleInputChange('brand', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Condition
-                </label>
-                <select
-                  value={formData.condition}
-                  onChange={(e) => handleInputChange('condition', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="NEW">New</option>
-                  <option value="LIKE_NEW">Like New</option>
-                  <option value="EXCELLENT">Excellent</option>
-                  <option value="VERY_GOOD">Very Good</option>
-                  <option value="GOOD">Good</option>
-                  <option value="FAIR">Fair</option>
-                  <option value="POOR">Poor</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category *
-                </label>
-                <select
-                  value={formData.categoryId}
-                  onChange={(e) => handleInputChange('categoryId', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="rounded-lg p-2 text-white/80 hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200"
+              >
+                <i className="fas fa-times text-lg"></i>
+              </button>
             </div>
-          </div>
-
-          {/* Pricing Information */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-800 mb-3">Pricing Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Starting Price ($) *
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={formData.basePrice || ''}
-                  onChange={(e) => handleInputChange('basePrice', parseFloat(e.target.value) || 0)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Bid Increment ($)
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  value={formData.bidIncrement || ''}
-                  onChange={(e) => handleInputChange('bidIncrement', parseFloat(e.target.value) || 10)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Entry Fee ($)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.entryFee || ''}
-                  onChange={(e) => handleInputChange('entryFee', parseFloat(e.target.value) || 0)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="Auto: 10% of starting price"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reserve Price ($)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.reservePrice || ''}
-                  onChange={(e) => handleInputChange('reservePrice', parseFloat(e.target.value) || 0)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Buy Now Price ($)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.buyNowPrice || ''}
-                  onChange={(e) => handleInputChange('buyNowPrice', parseFloat(e.target.value) || 0)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Timing Information */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-800 mb-3">Timing Information</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Time *
-                </label>
-                <input
-                  type="datetime-local"
-                  value={formData.startTime}
-                  onChange={(e) => handleInputChange('startTime', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  End Time *
-                </label>
-                <input
-                  type="datetime-local"
-                  value={formData.endTime}
-                  onChange={(e) => handleInputChange('endTime', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Featured Status */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-800 mb-3">Featured Options</h4>
-            <div className="flex items-center space-x-3">
-              <label className="flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.isFeatured}
-                  onChange={(e) => handleInputChange('isFeatured', e.target.checked)}
-                  className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
-                />
-                <span className="ml-2 text-sm font-medium text-gray-700">
-                  Mark as Featured
-                </span>
-              </label>
-              <div className="text-xs text-gray-500">
-                <i className="fas fa-star text-yellow-500 mr-1"></i>
-                Featured auctions appear prominently on the homepage and search results
-              </div>
-            </div>
-          </div>
-
-          {/* Image Management */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-800 mb-3">Images</h4>
             
-            {/* Upload Section */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Upload Images (Max 5)
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  disabled={isUploading || uploadedImages.length >= 5}
-                />
-                {isUploading && (
-                  <div className="flex items-center text-indigo-600">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
-                    Uploading...
+            {/* Progress Steps */}
+            <div className="mt-6 hidden sm:block">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center text-white/90">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/30 text-xs font-medium">1</div>
+                  <span className="ml-2 text-sm">Basic Info</span>
+                </div>
+                <div className="h-0.5 w-8 bg-white/30"></div>
+                <div className="flex items-center text-white/90">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/30 text-xs font-medium">2</div>
+                  <span className="ml-2 text-sm">Pricing</span>
+                </div>
+                <div className="h-0.5 w-8 bg-white/30"></div>
+                <div className="flex items-center text-white/90">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/30 text-xs font-medium">3</div>
+                  <span className="ml-2 text-sm">Images</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Modal Body */}
+          <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+            <form onSubmit={handleSubmit} className="space-y-6 p-6 sm:p-8">
+              {/* Basic Information */}
+              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
+                    <i className="fas fa-info-circle text-indigo-600"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Basic Information</h4>
+                </div>
+                
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => handleInputChange('title', e.target.value)}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                      placeholder="Enter auction title..."
+                      required
+                      minLength={3}
+                      maxLength={100}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      {formData.title.length}/100 characters
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Description <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                      rows={4}
+                      placeholder="Provide detailed description of the item..."
+                      required
+                      minLength={10}
+                      maxLength={2000}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      {formData.description.length}/2000 characters
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Brand
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.brand}
+                        onChange={(e) => handleInputChange('brand', e.target.value)}
+                        className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                        placeholder="Brand name (optional)"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Condition <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.condition}
+                        onChange={(e) => handleInputChange('condition', e.target.value)}
+                        className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                      >
+                        <option value="NEW">Brand New</option>
+                        <option value="LIKE_NEW">Like New</option>
+                        <option value="EXCELLENT">Excellent</option>
+                        <option value="VERY_GOOD">Very Good</option>
+                        <option value="GOOD">Good</option>
+                        <option value="FAIR">Fair</option>
+                        <option value="POOR">Poor</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Category <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={formData.categoryId}
+                      onChange={(e) => handleInputChange('categoryId', e.target.value)}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                      required
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Information */}
+              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                    <i className="fas fa-dollar-sign text-green-600"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Pricing Information</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Starting Price <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={formData.basePrice || ''}
+                        onChange={(e) => handleInputChange('basePrice', parseFloat(e.target.value) || 0)}
+                        className="w-full pl-7 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Bid Increment
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={formData.bidIncrement || ''}
+                        onChange={(e) => handleInputChange('bidIncrement', parseFloat(e.target.value) || 10)}
+                        className="w-full pl-7 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                        placeholder="10.00"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Entry Fee
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.entryFee || ''}
+                        onChange={(e) => handleInputChange('entryFee', parseFloat(e.target.value) || 0)}
+                        className="w-full pl-7 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                        placeholder="Auto: 10% of starting price"
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Leave empty for auto-calculation (10% of starting price)
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Reserve Price
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.reservePrice || ''}
+                        onChange={(e) => handleInputChange('reservePrice', parseFloat(e.target.value) || 0)}
+                        className="w-full pl-7 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Buy Now Price
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span className="text-gray-500 sm:text-sm">$</span>
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.buyNowPrice || ''}
+                        onChange={(e) => handleInputChange('buyNowPrice', parseFloat(e.target.value) || 0)}
+                        className="w-full pl-7 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Timing Information */}
+              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+                    <i className="fas fa-clock text-blue-600"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Timing Information</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Time <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.startTime}
+                      onChange={(e) => handleInputChange('startTime', e.target.value)}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Time <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formData.endTime}
+                      onChange={(e) => handleInputChange('endTime', e.target.value)}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Featured Status */}
+              <div className="rounded-xl border border-gray-200 bg-gradient-to-r from-yellow-50 to-orange-50 p-6">
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-100">
+                    <i className="fas fa-star text-yellow-600"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Featured Options</h4>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isFeatured}
+                        onChange={(e) => handleInputChange('isFeatured', e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
+                    </label>
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">Mark as Featured</span>
+                      <p className="text-xs text-gray-600">
+                        Featured auctions appear prominently on the homepage and search results
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-yellow-600">
+                    <i className="fas fa-star text-2xl"></i>
+                  </div>
+                </div>
+              </div>
+
+              {/* Image Management */}
+              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+                    <i className="fas fa-images text-purple-600"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Images</h4>
+                </div>
+                
+                {/* Upload Section */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Upload Images (Maximum 5)
+                  </label>
+                  <div className="flex items-center justify-center w-full">
+                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200 ${
+                      (isUploading || uploadedImages.length >= 5) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}>
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        {isUploading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-2"></div>
+                            <p className="text-sm text-gray-600">Uploading images...</p>
+                          </>
+                        ) : (
+                          <>
+                            <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                            <p className="mb-2 text-sm text-gray-500">
+                              <span className="font-semibold">Click to upload</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 5MB each</p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={isUploading || uploadedImages.length >= 5}
+                      />
+                    </label>
+                  </div>
+                  {uploadError && (
+                    <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-sm text-red-600">
+                        <i className="fas fa-exclamation-triangle mr-2"></i>
+                        {uploadError}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Image Preview */}
+                {uploadedImages.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h5 className="text-sm font-medium text-gray-700">
+                        Uploaded Images ({uploadedImages.length}/5)
+                      </h5>
+                      <span className="text-xs text-gray-500">
+                        First image will be used as the main display image
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+                      {uploadedImages.map((image, index) => {
+                        const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${image.url}`;
+                        
+                        return (
+                          <div key={index} className="relative group">
+                            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200">
+                              <Image
+                                src={imageUrl}
+                                alt={image.originalName}
+                                width={120}
+                                height={120}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            
+                            {/* Remove button */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
+                              title="Remove image"
+                            >
+                              <i className="fas fa-times text-xs"></i>
+                            </button>
+                            
+                            {/* Main image badge */}
+                            {index === 0 && (
+                              <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-md shadow-sm">
+                                <i className="fas fa-star mr-1"></i>
+                                Main
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Supported formats: JPG, PNG, GIF. Max 5MB per image.
-              </p>
-              {uploadError && (
-                <p className="text-xs text-red-500 mt-1">{uploadError}</p>
-              )}
-            </div>
-            
-            {/* Image Preview */}
-            {uploadedImages.length > 0 && (
-              <div>
-                <h5 className="text-sm font-medium text-gray-700 mb-2">
-                  Uploaded Images ({uploadedImages.length}/5)
-                </h5>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                  {uploadedImages.map((image, index) => {
-                    const imageUrl = `${process.env.NEXT_PUBLIC_API_URL}${image.url}`;
-                    console.log(`Rendering image ${index}:`, imageUrl);
-                    
-                    return (
-                      <div key={index} className="relative group border rounded-lg overflow-hidden">
-                        <Image
-                          src={imageUrl}
-                          alt={image.originalName}
-                          width={120}
-                          height={96}
-                          className="block"
-                          style={{ width: 120, height: 96, objectFit: 'cover' }}
-                        />
-                        {/* Remove button - positioned absolutely */}
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveImage(index)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-all duration-200 opacity-0 group-hover:opacity-100"
-                          title="Remove image"
-                        >
-                          <i className="fas fa-times text-xs"></i>
-                        </button>
-                        {/* Main image label */}
-                        {index === 0 && (
-                          <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
-                            Main
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            </form>
           </div>
 
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-6 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isUploading}
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isUploading ? 'Uploading...' : auction ? 'Update' : 'Create'} Auction
-            </button>
+          {/* Modal Footer */}
+          <div className="bg-gray-50 px-6 py-4 sm:px-8 sm:py-6">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+              >
+                <i className="fas fa-times mr-2"></i>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="auction-form"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('form')?.requestSubmit();
+                }}
+                disabled={isUploading}
+                className="inline-flex justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <i className={`fas ${auction ? 'fa-save' : 'fa-plus'} mr-2`}></i>
+                    {auction ? 'Update Auction' : 'Create Auction'}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

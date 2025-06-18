@@ -279,6 +279,74 @@ const getUserWatchlist = async (req, res) => {
   }
 };
 
+// Get user's won auctions
+const getUserWonAuctions = async (req, res) => {
+  try {
+    const { page = 1, limit = 12 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Find auctions won by the user
+    const wonAuctions = await Auction.find({ 
+      winnerId: req.user.id, 
+      status: { $in: ['ENDED', 'SOLD'] }
+    })
+      .populate('categoryId')
+      .populate('sellerId', 'firstName lastName username')
+      .sort({ endTime: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Get additional data for each won auction
+    const wonAuctionsWithData = await Promise.all(
+      wonAuctions.map(async (auction) => {
+        const [bidCount, watchlistCount, mainImage, winningBid] = await Promise.all([
+          Bid.countDocuments({ auctionId: auction._id }),
+          Watchlist.countDocuments({ auctionId: auction._id }),
+          AuctionImage.findOne({ auctionId: auction._id, isMain: true }),
+          Bid.findOne({ auctionId: auction._id, bidderId: req.user.id }).sort({ amount: -1 })
+        ]);
+
+        return {
+          ...auction.toObject(),
+          id: auction._id.toString(),
+          category: auction.categoryId,
+          seller: auction.sellerId,
+          images: mainImage ? [mainImage] : [],
+          winningBid: winningBid ? winningBid.amount : auction.currentBid,
+          _count: {
+            bids: bidCount,
+            watchlist: watchlistCount
+          }
+        };
+      })
+    );
+
+    const totalCount = await Auction.countDocuments({ 
+      winnerId: req.user.id, 
+      status: { $in: ['ENDED', 'SOLD'] }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        wonAuctions: wonAuctionsWithData,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(totalCount / parseInt(limit)),
+          totalCount
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user won auctions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch won auctions'
+    });
+  }
+};
+
 // Update user profile
 const updateProfile = async (req, res) => {
   try {
@@ -452,6 +520,7 @@ module.exports = {
   getDashboard,
   getUserBids,
   getUserWatchlist,
+  getUserWonAuctions,
   updateProfile,
   getUserNotifications,
   markNotificationRead,

@@ -48,6 +48,18 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: {
     type: Date
   },
+  emailVerificationOTP: {
+    type: String
+  },
+  passwordResetOTP: {
+    type: String
+  },
+  passwordResetOTPExpires: {
+    type: Date
+  },
+  otpExpires: {
+    type: Date
+  },
   refreshToken: {
     type: String
   },
@@ -80,5 +92,7 @@ userSchema.index({ email: 1 });
 userSchema.index({ username: 1 });
 userSchema.index({ emailVerificationToken: 1 });
 userSchema.index({ passwordResetToken: 1 });
+userSchema.index({ emailVerificationOTP: 1 });
+userSchema.index({ passwordResetOTP: 1 });
 
 module.exports = mongoose.model('User', userSchema); 

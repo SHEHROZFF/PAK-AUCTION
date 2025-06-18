@@ -135,68 +135,96 @@ export function DashboardTab() {
     <div className="p-6 space-y-6">
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-blue-100 text-sm">Total Products</p>
-              <p className="text-3xl font-bold">{currentStats.totalProducts.toLocaleString()}</p>
-              <p className="text-blue-100 text-sm mt-1">
-                <i className="fas fa-arrow-up mr-1"></i>
-                12% from last month
-              </p>
-            </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-3">
-              <i className="fas fa-box text-2xl"></i>
+        {/* Total Products Card */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm font-medium">Total Products</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">{currentStats.totalProducts.toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <span className="text-green-500 text-sm font-medium">
+                    <i className="fas fa-arrow-up mr-1 text-green-500"></i>
+                    12%
+                  </span>
+                  <span className="text-gray-400 text-xs ml-1">from last month</span>
+                </div>
+              </div>
+              <div className="bg-blue-600 rounded-full p-3 h-12 w-12 flex items-center justify-center">
+                <i className="fas fa-box text-white"></i>
+              </div>
             </div>
           </div>
+          <div className="h-1 w-full bg-blue-600"></div>
         </div>
 
-        <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">Active Auctions</p>
-              <p className="text-3xl font-bold">{currentStats.activeAuctions.toLocaleString()}</p>
-              <p className="text-green-100 text-sm mt-1">
-                <i className="fas fa-arrow-up mr-1"></i>
-                8% from last month
-              </p>
-            </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-3">
-              <i className="fas fa-gavel text-2xl"></i>
+        {/* Active Auctions Card */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm font-medium">Active Auctions</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">{currentStats.activeAuctions.toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <span className="text-green-500 text-sm font-medium">
+                    <i className="fas fa-arrow-up mr-1 text-green-500"></i>
+                    8%
+                  </span>
+                  <span className="text-gray-400 text-xs ml-1">from last month</span>
+                </div>
+              </div>
+              <div className="bg-green-600 rounded-full p-3 h-12 w-12 flex items-center justify-center">
+                <i className="fas fa-gavel text-white"></i>
+              </div>
             </div>
           </div>
+          <div className="h-1 w-full bg-green-600"></div>
         </div>
 
-        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-purple-100 text-sm">Total Revenue</p>
-              <p className="text-3xl font-bold">${currentStats.totalRevenue.toLocaleString()}</p>
-              <p className="text-purple-100 text-sm mt-1">
-                <i className="fas fa-arrow-up mr-1"></i>
-                {currentStats.revenueGrowth}% from last month
-              </p>
-            </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-3">
-              <i className="fas fa-dollar-sign text-2xl"></i>
+        {/* Total Revenue Card */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm font-medium">Total Revenue</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">${currentStats.totalRevenue.toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <span className="text-green-500 text-sm font-medium">
+                    <i className="fas fa-arrow-up mr-1 text-green-500"></i>
+                    {currentStats.revenueGrowth}%
+                  </span>
+                  <span className="text-gray-400 text-xs ml-1">from last month</span>
+                </div>
+              </div>
+              <div className="bg-purple-600 rounded-full p-3 h-12 w-12 flex items-center justify-center">
+                <i className="fas fa-dollar-sign text-white"></i>
+              </div>
             </div>
           </div>
+          <div className="h-1 w-full bg-purple-600"></div>
         </div>
 
-        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-100 text-sm">Total Bids</p>
-              <p className="text-3xl font-bold">{currentStats.totalBids.toLocaleString()}</p>
-              <p className="text-orange-100 text-sm mt-1">
-                <i className="fas fa-arrow-up mr-1"></i>
-                18% from last month
-              </p>
-            </div>
-            <div className="bg-white bg-opacity-20 rounded-lg p-3">
-              <i className="fas fa-hand-paper text-2xl"></i>
+        {/* Total Bids Card */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-sm font-medium">Total Bids</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">{currentStats.totalBids.toLocaleString()}</p>
+                <div className="flex items-center mt-2">
+                  <span className="text-green-500 text-sm font-medium">
+                    <i className="fas fa-arrow-up mr-1 text-green-500"></i>
+                    18%
+                  </span>
+                  <span className="text-gray-400 text-xs ml-1">from last month</span>
+                </div>
+              </div>
+              <div className="bg-orange-600 rounded-full p-3 h-12 w-12 flex items-center justify-center">
+                <i className="fas fa-hand-paper text-white"></i>
+              </div>
             </div>
           </div>
+          <div className="h-1 w-full bg-orange-600"></div>
         </div>
       </div>
 
@@ -237,7 +265,7 @@ export function DashboardTab() {
               {recentActivity.slice(0, 5).map((activity) => (
                 <div key={activity.id} className="flex items-start space-x-3">
                   <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${activity.iconBg}`}>
-                    <i className={`${activity.icon} text-white text-xs`}></i>
+                    <i className={`${activity.icon} text-white text-xs`} style={{color: 'white'}}></i>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900">{activity.title}</p>

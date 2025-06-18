@@ -287,11 +287,11 @@ class HeaderManager {
               <!-- Will be populated by updateAuthSection() -->
               <div class="flex items-center space-x-4">
                 <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
-                <a href="sell-product.html" class="sell-your-product_Navbar">
-                  <span class="sell-your-product_Navbar-text-container">
-                    <span class="sell-your-product_Navbar-text">Sell Product</span>
-                  </span>
-                </a>
+              <a href="sell-product.html" class="sell-your-product_Navbar">
+                <span class="sell-your-product_Navbar-text-container">
+                  <span class="sell-your-product_Navbar-text">Sell Product</span>
+                </span>
+              </a>
               </div>
             </div>
 

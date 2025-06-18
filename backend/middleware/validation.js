@@ -138,10 +138,58 @@ const validateChangePassword = [
   handleValidationErrors
 ];
 
+// Email validation (for mobile OTP)
+const validateEmail = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email address'),
+  
+  handleValidationErrors
+];
+
+// OTP verification validation
+const validateOTP = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email address'),
+  
+  body('otp')
+    .isLength({ min: 6, max: 6 })
+    .isNumeric()
+    .withMessage('OTP must be a 6-digit number'),
+  
+  handleValidationErrors
+];
+
+// Password reset with OTP validation
+const validatePasswordResetOTP = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email address'),
+  
+  body('otp')
+    .isLength({ min: 6, max: 6 })
+    .isNumeric()
+    .withMessage('OTP must be a 6-digit number'),
+  
+  body('newPassword')
+    .isLength({ min: 8 })
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+    .withMessage('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
+  
+  handleValidationErrors
+];
+
 module.exports = {
   validateRegister,
   validateLogin,
   validateForgotPassword,
   validateResetPassword,
-  validateChangePassword
+  validateChangePassword,
+  validateEmail,
+  validateOTP,
+  validatePasswordResetOTP
 }; 

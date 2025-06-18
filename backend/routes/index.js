@@ -3,6 +3,7 @@ const router = express.Router();
 
 // Import route modules
 const authRoutes = require('./auth');
+const mobileAuthRoutes = require('./mobileAuth');
 const auctionRoutes = require('./auctions');
 const categoryRoutes = require('./categories');
 const userRoutes = require('./users');
@@ -17,6 +18,7 @@ const productSubmissionRoutes = require('./productSubmissions');
 
 // Use route modules
 router.use('/auth', authRoutes);
+router.use('/auth/mobile', mobileAuthRoutes);
 router.use('/auctions', auctionRoutes);
 router.use('/categories', categoryRoutes);
 router.use('/users', userRoutes);
@@ -53,6 +55,12 @@ router.get('/', (req, res) => {
       'POST /api/auth/reset-password',
       'POST /api/auth/change-password',
       'GET /api/auth/profile',
+      
+      // Mobile Auth OTP routes
+      'POST /api/auth/mobile/send-otp',
+      'POST /api/auth/mobile/verify-otp',
+      'POST /api/auth/mobile/forgot-password-otp',
+      'POST /api/auth/mobile/reset-password-otp',
       
       // Auction routes
       'GET /api/auctions',

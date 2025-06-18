@@ -12,6 +12,7 @@ router.use(verifyToken);
 router.get('/dashboard', userController.getDashboard);
 router.get('/bids', userController.getUserBids);
 router.get('/watchlist', userController.getUserWatchlist);
+router.get('/won-auctions', userController.getUserWonAuctions);
 router.get('/auctions', auctionController.getUserAuctions);
 router.put('/profile', userController.updateProfile);
 

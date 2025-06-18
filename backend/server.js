@@ -51,7 +51,8 @@ const corsOptions = {
       'http://127.0.0.1:3001',
       'null', // For file:// protocol
       'https://pak-auction-gmuk.vercel.app',
-      'https://pak-auction-muk.vercel.app'
+      'https://pak-auction-muk.vercel.app',
+      'exp://192.168.1.102:8081'
     ];
     
     // If environment variable is set, use it

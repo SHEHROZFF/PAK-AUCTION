@@ -1,0 +1,213 @@
+/* Force light mode */
+:root {
+  color-scheme: light !important;
+  forced-color-adjust: none !important;
+}
+
+/* Force white background */
+html, body {
+  background-color: white !important;
+  color: #333333 !important;
+}
+
+/* Reset all text colors */
+* {
+  color: #333333 !important;
+}
+
+/* Force white text on dark backgrounds */
+.bg-indigo-500, .bg-indigo-600, .bg-indigo-700, .bg-indigo-800, .bg-indigo-900,
+.bg-purple-500, .bg-purple-600, .bg-purple-700, .bg-purple-800, .bg-purple-900,
+.bg-blue-500, .bg-blue-600, .bg-blue-700, .bg-blue-800, .bg-blue-900,
+.bg-red-500, .bg-red-600, .bg-red-700, .bg-red-800, .bg-red-900,
+.bg-green-500, .bg-green-600, .bg-green-700, .bg-green-800, .bg-green-900,
+.bg-gray-500, .bg-gray-600, .bg-gray-700, .bg-gray-800, .bg-gray-900,
+.bg-black, .text-white,
+button.bg-indigo-600, button.bg-indigo-700,
+button.bg-blue-600, button.bg-blue-700,
+button.bg-red-600, button.bg-red-700,
+button.bg-green-600, button.bg-green-700,
+.bg-gradient-to-r, [class*="from-indigo-"], [class*="to-purple-"] {
+  color: white !important;
+}
+
+/* Force white text on all children of dark backgrounds */
+.bg-indigo-500 *, .bg-indigo-600 *, .bg-indigo-700 *, .bg-indigo-800 *, .bg-indigo-900 *,
+.bg-purple-500 *, .bg-purple-600 *, .bg-purple-700 *, .bg-purple-800 *, .bg-purple-900 *,
+.bg-blue-500 *, .bg-blue-600 *, .bg-blue-700 *, .bg-blue-800 *, .bg-blue-900 *,
+.bg-red-500 *, .bg-red-600 *, .bg-red-700 *, .bg-red-800 *, .bg-red-900 *,
+.bg-green-500 *, .bg-green-600 *, .bg-green-700 *, .bg-green-800 *, .bg-green-900 *,
+.bg-gray-500 *, .bg-gray-600 *, .bg-gray-700 *, .bg-gray-800 *, .bg-gray-900 *,
+.bg-black *, 
+button.bg-indigo-600 *, button.bg-indigo-700 *,
+button.bg-blue-600 *, button.bg-blue-700 *,
+button.bg-red-600 *, button.bg-red-700 *,
+button.bg-green-600 *, button.bg-green-700 *,
+.bg-gradient-to-r *, [class*="from-indigo-"] *, [class*="to-purple-"] * {
+  color: white !important;
+}
+
+/* Force specific colors for status indicators */
+.text-indigo-600 { color: #4f46e5 !important; }
+.text-indigo-700 { color: #4338ca !important; }
+.text-red-600 { color: #dc2626 !important; }
+.text-red-700 { color: #b91c1c !important; }
+.text-green-600 { color: #16a34a !important; }
+.text-green-700 { color: #15803d !important; }
+.text-blue-600 { color: #2563eb !important; }
+.text-blue-700 { color: #1d4ed8 !important; }
+.text-yellow-600 { color: #ca8a04 !important; }
+.text-yellow-700 { color: #a16207 !important; }
+
+/* Fix for sidebar */
+.sidebar, .sidebar * {
+  color: white !important;
+}
+
+/* Fix for modals */
+.modal-header, .modal-header * {
+  color: white !important;
+}
+
+/* Fix for buttons with light backgrounds */
+button.bg-white, button.bg-gray-100, button.bg-gray-200 {
+  color: #333333 !important;
+}
+
+/* Fix for specific components */
+.bg-white, .bg-gray-50, .bg-gray-100 {
+  background-color: white !important;
+}
+
+/* Fix for inputs */
+input, textarea, select {
+  color: #333333 !important;
+  background-color: white !important;
+  caret-color: #333333 !important;
+  -webkit-text-fill-color: #333333 !important;
+}
+
+/* Specific fix for login page inputs */
+.bg-white input[type="email"],
+.bg-white input[type="password"],
+.bg-white input[type="text"] {
+  color: #333333 !important;
+  -webkit-text-fill-color: #333333 !important;
+  background-color: white !important;
+}
+
+/* Fix for links */
+a:not(.bg-indigo-600):not(.bg-blue-600):not(.bg-red-600):not(.bg-green-600):not(.bg-black) {
+  color: #2563eb !important;
+}
+
+/* Fix for headings */
+h1, h2, h3, h4, h5, h6 {
+  color: #111827 !important;
+}
+
+/* Fix for paragraphs */
+p {
+  color: #374151 !important;
+}
+
+/* Force specific components */
+.text-gray-400 { color: #9ca3af !important; }
+.text-gray-500 { color: #6b7280 !important; }
+.text-gray-600 { color: #4b5563 !important; }
+.text-gray-700 { color: #374151 !important; }
+.text-gray-800 { color: #1f2937 !important; }
+.text-gray-900 { color: #111827 !important; }
+
+/* Fix for login page icons */
+.fas.fa-envelope, .fas.fa-lock, .fas.fa-eye, .fas.fa-eye-slash {
+  color: #9ca3af !important;
+}
+
+.fas.fa-exclamation-circle {
+  color: #b91c1c !important;
+}
+
+.fas.fa-gavel {
+  color: white !important;
+}
+
+/* Fix for login page background */
+.bg-gradient-to-br {
+  background: linear-gradient(to bottom right, #eef2ff, #ffffff, #ecfeff) !important;
+}
+
+/* Extra specific fix for login form inputs */
+.login-form input.login-input {
+  color: #333333 !important;
+  -webkit-text-fill-color: #333333 !important;
+  background-color: white !important;
+  border-color: #d1d5db !important;
+}
+
+/* Force login input text color */
+input.login-input::placeholder {
+  color: #9ca3af !important;
+  -webkit-text-fill-color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* Fix for dashboard statistics icons */
+.bg-white.bg-opacity-20 i.fas {
+  color: white !important;
+}
+
+/* Fix for specific dashboard icons */
+.fas.fa-box, 
+.fas.fa-gavel, 
+.fas.fa-dollar-sign, 
+.fas.fa-hand-paper,
+.fas.fa-arrow-up {
+  color: inherit !important;
+}
+
+/* Fix for gradient backgrounds and their icons */
+.bg-gradient-to-r.from-blue-500,
+.bg-gradient-to-r.from-green-500,
+.bg-gradient-to-r.from-purple-500,
+.bg-gradient-to-r.from-orange-500 {
+  color: white !important;
+}
+
+.bg-gradient-to-r.from-blue-500 *,
+.bg-gradient-to-r.from-green-500 *,
+.bg-gradient-to-r.from-purple-500 *,
+.bg-gradient-to-r.from-orange-500 * {
+  color: white !important;
+}
+
+/* Fix for text colors in dashboard cards */
+.text-blue-100,
+.text-green-100,
+.text-purple-100,
+.text-orange-100 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Fix for activity icons in dashboard */
+.rounded-full i.text-white,
+.rounded-full i.fas,
+.rounded-full i.far,
+.rounded-full i.fab {
+  color: white !important;
+}
+
+/* Fix for all icon backgrounds */
+.bg-blue-500, .bg-green-500, .bg-red-500, .bg-yellow-500, .bg-purple-500, .bg-indigo-500, .bg-orange-500,
+.bg-blue-600, .bg-green-600, .bg-red-600, .bg-yellow-600, .bg-purple-600, .bg-indigo-600, .bg-orange-600 {
+  color: white !important;
+}
+
+/* Fix for all colored text in dashboard */
+.text-red-600 { color: #dc2626 !important; }
+.text-blue-600 { color: #2563eb !important; }
+.text-green-600 { color: #16a34a !important; }
+.text-yellow-600 { color: #ca8a04 !important; }
+.text-purple-600 { color: #9333ea !important; }
+.text-indigo-600 { color: #4f46e5 !important; }
+.text-orange-600 { color: #ea580c !important; } 

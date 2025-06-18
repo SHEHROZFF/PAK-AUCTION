@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 const config = require('../config');
-const { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } = require('../utils/email');
+const { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail, sendOTPEmail } = require('../utils/email');
 
 // Generate JWT tokens
 const generateTokens = (userId) => {
@@ -41,7 +41,12 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
   });
 };
 
-// Register user
+// Generate 6-digit OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Register user (supports both web token and mobile OTP)
 const register = async (req, res) => {
   try {
     const {
@@ -52,7 +57,8 @@ const register = async (req, res) => {
       password,
       phone,
       dateOfBirth,
-      marketingEmails
+      marketingEmails,
+      isMobile // Add this parameter to differentiate mobile registration
     } = req.body;
 
     console.log(req.body);
@@ -76,11 +82,56 @@ const register = async (req, res) => {
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Generate email verification token
+    let user;
+
+    if (isMobile) {
+      // Mobile registration - use OTP
+      const otp = generateOTP();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      user = new User({
+        email,
+        username,
+        firstName,
+        lastName,
+        password: hashedPassword,
+        phone: phone || null,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+        marketingEmails: marketingEmails || false,
+        emailVerificationOTP: otp,
+        otpExpires: otpExpires,
+        isEmailVerified: false,
+        role: 'USER',
+        isActive: true
+      });
+
+      await user.save();
+
+      // Send OTP email
+      sendOTPEmail(email, firstName, otp, 'verify').catch(error => {
+        console.error('Failed to send verification email:', error);
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: 'Registration successful! Please check your email for the verification code.',
+        data: {
+          user: {
+            id: user._id.toString(),
+            email: user.email,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            isEmailVerified: user.isEmailVerified
+          },
+          verificationRequired: true
+        }
+      });
+    } else {
+      // Web registration - use token
     const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 
-    // Create user
-    const user = new User({
+      user = new User({
       email,
       username,
       firstName,
@@ -102,7 +153,7 @@ const register = async (req, res) => {
       console.error('Failed to send verification email:', error);
     });
 
-    res.status(201).json({
+      return res.status(201).json({
       success: true,
       message: 'Registration successful! Please check your email to verify your account.',
       data: {
@@ -116,6 +167,7 @@ const register = async (req, res) => {
         }
       }
     });
+    }
 
   } catch (error) {
     console.error('Registration error:', error);
@@ -192,7 +244,8 @@ const login = async (req, res) => {
           role: user.role,
           isEmailVerified: user.isEmailVerified
         },
-        token: accessToken
+        token: accessToken,
+        refreshToken: refreshToken
       }
     });
 
@@ -248,7 +301,8 @@ const refreshToken = async (req, res) => {
       success: true,
       message: 'Token refreshed successfully',
       data: {
-        token: accessToken
+        token: accessToken,
+        refreshToken: newRefreshToken
       }
     });
 
@@ -522,8 +576,7 @@ const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Find user
-    const user = await User.findById(userId).select('-password -refreshToken -emailVerificationToken -passwordResetToken');
+    const user = await User.findById(userId).select('-password -refreshToken');
 
     if (!user) {
       return res.status(404).json({
@@ -543,12 +596,10 @@ const getProfile = async (req, res) => {
           lastName: user.lastName,
           phone: user.phone,
           dateOfBirth: user.dateOfBirth,
-          profilePhoto: user.profilePhoto,
+          marketingEmails: user.marketingEmails,
           role: user.role,
           isEmailVerified: user.isEmailVerified,
-          isActive: user.isActive,
-          marketingEmails: user.marketingEmails,
-          lastLogin: user.lastLogin,
+          profilePhoto: user.profilePhoto,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
         }
@@ -559,7 +610,224 @@ const getProfile = async (req, res) => {
     console.error('Get profile error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch profile'
+      message: 'Failed to get profile'
+    });
+  }
+};
+
+// Mobile OTP Functions
+
+// Send OTP for email verification (resend)
+const sendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Check if user exists and is not verified
+    const user = await User.findOne({ email });
+
+    if (user && user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found. Please register first.'
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Update user with OTP
+    await User.findByIdAndUpdate(user._id, {
+      emailVerificationOTP: otp,
+      otpExpires: otpExpires
+    });
+
+    // Send OTP email
+    await sendOTPEmail(email, user.firstName, otp, 'verify');
+
+    res.json({
+      success: true,
+      message: 'Verification code sent to your email'
+    });
+
+  } catch (error) {
+    console.error('Send OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send verification code'
+    });
+  }
+};
+
+// Verify OTP for email verification
+const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Find user with matching email and OTP
+    const user = await User.findOne({
+      email,
+      emailVerificationOTP: otp,
+      otpExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification code'
+      });
+    }
+
+    // Update user as verified
+    await User.findByIdAndUpdate(user._id, {
+      isEmailVerified: true,
+      emailVerificationOTP: null,
+      otpExpires: null
+    });
+
+    // Send welcome email
+    sendWelcomeEmail(user.email, user.firstName).catch(error => {
+      console.error('Failed to send welcome email:', error);
+    });
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully! Welcome to PakAuction.'
+    });
+
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Email verification failed'
+    });
+  }
+};
+
+// Send OTP for password reset
+const forgotPasswordOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Don't reveal if email exists or not (same as web version)
+      return res.json({
+        success: true,
+        message: 'If an account with that email exists, we have sent a password reset code.'
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Update user with password reset OTP
+    await User.findByIdAndUpdate(user._id, {
+      passwordResetOTP: otp,
+      passwordResetOTPExpires: otpExpires
+    });
+
+    // Send OTP email
+    await sendOTPEmail(user.email, user.firstName, otp, 'reset');
+
+    res.json({
+      success: true,
+      message: 'If an account with that email exists, we have sent a password reset code.'
+    });
+
+  } catch (error) {
+    console.error('Forgot password OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send password reset code'
+    });
+  }
+};
+
+// Reset password with OTP
+const resetPasswordOTP = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    // Find user with valid reset OTP
+    const user = await User.findOne({
+      email,
+      passwordResetOTP: otp,
+      passwordResetOTPExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired reset code'
+      });
+    }
+
+    // Hash new password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update user with new password and clear reset OTP
+    await User.findByIdAndUpdate(user._id, {
+      password: hashedPassword,
+      passwordResetOTP: null,
+      passwordResetOTPExpires: null,
+      refreshToken: null // Clear all sessions
+    });
+
+    res.json({
+      success: true,
+      message: 'Password reset successful. Please login with your new password.'
+    });
+
+  } catch (error) {
+    console.error('Reset password OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Password reset failed'
+    });
+  }
+};
+
+// NEW: Verify password reset OTP (without changing password)
+const verifyPasswordResetOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Find user with valid reset OTP
+    const user = await User.findOne({
+      email,
+      passwordResetOTP: otp,
+      passwordResetOTPExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired reset code'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Reset code verified successfully. You can now create a new password.'
+    });
+
+  } catch (error) {
+    console.error('Verify password reset OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Password reset code verification failed'
     });
   }
 };
@@ -574,5 +842,11 @@ module.exports = {
   forgotPassword,
   resetPassword,
   changePassword,
-  getProfile
+  getProfile,
+  // Mobile OTP functions
+  sendOTP,
+  verifyOTP,
+  forgotPasswordOTP,
+  resetPasswordOTP,
+  verifyPasswordResetOTP
 }; 

@@ -198,15 +198,16 @@ const sendWelcomeEmail = async (email, firstName) => {
               <p>Your email has been successfully verified! Welcome to PakAuction, Pakistan's premier online auction platform.</p>
               <p>You can now:</p>
               <ul>
-                <li>Browse and bid on unique items</li>
-                <li>List your own items for auction</li>
+                <li>Browse and bid on thousands of items</li>
+                <li>Create your own auctions</li>
                 <li>Track your bidding activity</li>
-                <li>Manage your account settings</li>
+                <li>Manage your profile and preferences</li>
               </ul>
               <div style="text-align: center;">
-                <a href="${config.frontendUrl}" class="button">Start Exploring</a>
+                <a href="${config.frontendUrl}" class="button">Start Bidding Now</a>
               </div>
               <p>If you have any questions, feel free to contact our support team.</p>
+              <p>Happy bidding!</p>
             </div>
             <div class="footer">
               <p>&copy; 2024 PakAuction. All rights reserved.</p>
@@ -221,6 +222,95 @@ const sendWelcomeEmail = async (email, firstName) => {
     return { success: true };
   } catch (error) {
     console.error('Email sending error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+// Send OTP email for mobile authentication
+const sendOTPEmail = async (email, firstName, otp, type = 'verify') => {
+  try {
+    const transporter = createTransporter();
+    
+    // If no email credentials configured, return success but log warning
+    if (!transporter) {
+      console.warn(`OTP email would be sent to ${email}, but email is not configured.`);
+      console.warn(`OTP code: ${otp} for ${type}`);
+      return { success: true, message: 'Email not configured - OTP logged to console' };
+    }
+
+    const isVerification = type === 'verify';
+    const subject = isVerification ? 'Verify Your Email - PakAuction' : 'Password Reset Code - PakAuction';
+    const title = isVerification ? 'Email Verification' : 'Password Reset';
+    const description = isVerification 
+      ? 'Thank you for registering with PakAuction. To complete your registration, please enter the verification code below in your mobile app:'
+      : 'We received a request to reset your password. Please enter the reset code below in your mobile app:';
+    const expiryTime = isVerification ? '10 minutes' : '15 minutes';
+
+    const mailOptions = {
+      from: config.email.from,
+      to: email,
+      subject: subject,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #0ea5e9; color: white; padding: 20px; text-align: center; }
+            .content { padding: 30px; background: #f9f9f9; }
+            .otp-code { 
+              font-size: 32px; 
+              font-weight: bold; 
+              color: #0ea5e9; 
+              text-align: center; 
+              letter-spacing: 8px; 
+              background: white; 
+              padding: 20px; 
+              border: 2px dashed #0ea5e9; 
+              border-radius: 10px; 
+              margin: 20px 0; 
+            }
+            .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
+            .warning { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${title}</h1>
+            </div>
+            <div class="content">
+              <h2>Hi ${firstName},</h2>
+              <p>${description}</p>
+              
+              <div class="otp-code">${otp}</div>
+              
+              <div class="warning">
+                <p><strong>Important:</strong> This verification code will expire in ${expiryTime} for security reasons.</p>
+              </div>
+              
+              <p>Please enter this 6-digit code in your PakAuction mobile app to continue.</p>
+              
+              ${!isVerification ? '<p>If you didn\'t request a password reset, please ignore this email. Your password will remain unchanged.</p>' : ''}
+              ${isVerification ? '<p>If you didn\'t create an account with us, please ignore this email.</p>' : ''}
+            </div>
+            <div class="footer">
+              <p>&copy; 2024 PakAuction. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return { success: true };
+  } catch (error) {
+    console.error('OTP email sending error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -646,6 +736,7 @@ module.exports = {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
+  sendOTPEmail,
   sendAuctionWinnerEmail,
   sendAuctionEndedSellerEmail,
   sendOutbidNotificationEmail,

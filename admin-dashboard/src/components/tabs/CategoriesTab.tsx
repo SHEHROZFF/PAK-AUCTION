@@ -83,123 +83,238 @@ function CategoryModal({ category, isOpen, onClose, onSave, formError }: Categor
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">
-          {category ? 'Edit Category' : 'Create New Category'}
-        </h3>
-        
-        {/* Form Error Display */}
-        {formError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <i className="fas fa-exclamation-circle text-red-400"></i>
-              </div>
-              <div className="ml-3">
-                <div className="text-sm text-red-700">
-                  {formError}
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop with blur effect */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" />
+      
+      {/* Modal Container */}
+      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+        <div className="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 sm:my-8 sm:w-full sm:max-w-3xl">
+          {/* Modal Header */}
+          <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 sm:px-8 sm:py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
+                    <i className="fas fa-tags text-white text-lg"></i>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold leading-6 text-white">
+                    {category ? 'Edit Category' : 'Create New Category'}
+                  </h3>
+                  <p className="text-sm text-indigo-100">
+                    {category ? 'Update category details and settings' : 'Set up a new category for auctions'}
+                  </p>
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg p-2 text-white/80 hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200"
+              >
+                <i className="fas fa-times text-lg"></i>
+              </button>
             </div>
           </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category Name *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Slug *
-              </label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) => setFormData({...formData, slug: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                placeholder="category-slug"
-                required
-              />
-              {!category && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Auto-generated from name. You can edit it manually.
-                </p>
-              )}
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                rows={3}
-                placeholder="Brief description of the category"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Icon
-              </label>
-              <div className="grid grid-cols-8 gap-2 max-h-32 overflow-y-auto">
-                {availableIcons.map((icon) => (
-                  <button
-                    key={icon}
-                    type="button"
-                    onClick={() => setFormData({...formData, icon})}
-                    className={`p-2 rounded border text-center hover:bg-gray-50 ${
-                      formData.icon === icon ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'
-                    }`}
-                  >
-                    <i className={`${icon} text-lg`}></i>
-                  </button>
-                ))}
+
+          {/* Modal Body */}
+          <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
+            {/* Form Error Display */}
+            {formError && (
+              <div className="mx-6 mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <i className="fas fa-exclamation-circle text-red-400"></i>
+                  </div>
+                  <div className="ml-3">
+                    <div className="text-sm text-red-700">
+                      {formError}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="mt-2 flex items-center">
-                <span className="text-sm text-gray-600 mr-2">Selected:</span>
-                <i className={`${formData.icon} text-indigo-600 text-lg`}></i>
+            )}
+            
+            <form onSubmit={handleSubmit} className="space-y-6 p-6 sm:p-8">
+              {/* Basic Information */}
+              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
+                    <i className="fas fa-info-circle text-indigo-600"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Basic Information</h4>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => handleNameChange(e.target.value)}
+                        className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                        placeholder="Enter category name..."
+                        required
+                        minLength={2}
+                        maxLength={50}
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        {formData.name.length}/50 characters
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Slug <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.slug}
+                        onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                        className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                        placeholder="category-slug"
+                        required
+                        pattern="^[a-z0-9-]+$"
+                        title="Only lowercase letters, numbers, and hyphens allowed"
+                      />
+                      {!category && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Auto-generated from name. You can edit it manually.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors duration-200"
+                      rows={3}
+                      placeholder="Brief description of the category..."
+                      maxLength={200}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      {formData.description.length}/200 characters
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
-                />
-                <span className="ml-2 text-sm text-gray-700">Active</span>
-              </label>
+
+              {/* Icon Selection */}
+              <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+                    <i className="fas fa-palette text-purple-600"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Icon Selection</h4>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-sm text-gray-600">Selected icon:</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
+                        <i className={`${formData.icon} text-indigo-600`}></i>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{formData.icon}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Choose an icon
+                    </label>
+                    <div className="grid grid-cols-8 gap-3 max-h-40 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-white">
+                      {availableIcons.map((icon) => (
+                        <button
+                          key={icon}
+                          type="button"
+                          onClick={() => setFormData({...formData, icon})}
+                          className={`flex items-center justify-center p-3 rounded-lg border transition-all duration-200 hover:shadow-md ${
+                            formData.icon === icon 
+                              ? 'border-indigo-500 bg-indigo-50 shadow-md' 
+                              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                          }`}
+                          title={icon}
+                        >
+                          <i className={`${icon} text-lg ${
+                            formData.icon === icon ? 'text-indigo-600' : 'text-gray-600'
+                          }`}></i>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Category Status */}
+              <div className="rounded-xl border border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6">
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                    <i className="fas fa-toggle-on text-green-600"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900">Category Status</h4>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isActive}
+                        onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                    </label>
+                    <div>
+                      <span className="text-sm font-medium text-gray-900">Active Category</span>
+                      <p className="text-xs text-gray-600">
+                        Active categories are available for use in auctions
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`text-2xl ${formData.isActive ? 'text-green-600' : 'text-gray-400'}`}>
+                    <i className={`fas ${formData.isActive ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          {/* Modal Footer */}
+          <div className="bg-gray-50 px-6 py-4 sm:px-8 sm:py-6">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+              >
+                <i className="fas fa-times mr-2"></i>
+                Cancel
+              </button>
+              <button
+                type="submit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.querySelector('form')?.requestSubmit();
+                }}
+                className="inline-flex justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
+              >
+                <i className={`fas ${category ? 'fa-save' : 'fa-plus'} mr-2`}></i>
+                {category ? 'Update Category' : 'Create Category'}
+              </button>
             </div>
           </div>
-          <div className="flex justify-end space-x-2 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              {category ? 'Update' : 'Create'} Category
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

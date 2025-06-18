@@ -324,7 +324,7 @@ const getAuctionById = async (req, res) => {
       Watchlist.countDocuments({ auctionId: id }),
       AuctionImage.find({ auctionId: id }).sort({ order: 1 }),
       Bid.find({ auctionId: id })
-        .populate('bidderId', 'firstName lastName username')
+        .populate('bidderId', 'firstName lastName username profilePhoto')
         .sort({ amount: -1 })
         .limit(10)
     ]);
@@ -812,7 +812,7 @@ const placeBid = async (req, res) => {
 
     // Populate the bid with user data
     const populatedBid = await Bid.findById(bid._id)
-      .populate('bidderId', 'firstName lastName username');
+      .populate('bidderId', 'firstName lastName username profilePhoto');
 
     res.status(isUpdate ? 200 : 201).json({
       success: true,
@@ -846,7 +846,7 @@ const getAuctionBids = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const bids = await Bid.find({ auctionId: id })
-      .populate('bidderId', 'firstName lastName username')
+      .populate('bidderId', 'firstName lastName username profilePhoto')
       .sort({ amount: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -953,7 +953,7 @@ const getUserBidStatus = async (req, res) => {
     const userBid = await Bid.findOne({ 
       auctionId: id, 
       bidderId: userId 
-    }).populate('bidderId', 'firstName lastName username');
+    }).populate('bidderId', 'firstName lastName username profilePhoto');
 
     const hasUserBid = !!userBid;
     const isWinning = hasUserBid && userBid.isWinning;

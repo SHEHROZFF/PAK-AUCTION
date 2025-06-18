@@ -69,7 +69,10 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen overflow-auto">
+    <div className="flex h-screen overflow-auto relative bg-white">
+      {/* Simple white background - no image */}
+      <div className="absolute inset-0 bg-white pointer-events-none"></div>
+      
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
@@ -78,7 +81,7 @@ export function AdminDashboard() {
       />
       
       {/* Main Content */}
-      <div className="flex-1 ml-0 md:ml-[280px] transition-all">
+      <div className="flex-1 ml-0 md:ml-[280px] transition-all relative z-10">
         <Header onMenuClick={() => setSidebarOpen(true)} />
         
         <main className="p-4 md:p-6">

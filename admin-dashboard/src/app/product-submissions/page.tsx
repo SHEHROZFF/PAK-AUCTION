@@ -416,6 +416,7 @@ export default function ProductSubmissionsPage() {
                               Review
                             </button>
                           )}
+                          {/* Convert option commented out
                           {(submission.status === 'APPROVED' || submission.status === 'PENDING') && (
                             <button
                               onClick={() => openModal(submission, 'convert')}
@@ -424,6 +425,7 @@ export default function ProductSubmissionsPage() {
                               Convert
                             </button>
                           )}
+                          */}
                           <button
                             onClick={() => deleteSubmission(submission._id)}
                             className="text-red-600 hover:text-red-900"
@@ -773,6 +775,7 @@ export default function ProductSubmissionsPage() {
                     </button>
                   )}
                   
+                  {/* Convert button commented out
                   {modalType === 'convert' && (
                     <button
                       onClick={() => convertToAuction(selectedSubmission._id)}
@@ -792,6 +795,7 @@ export default function ProductSubmissionsPage() {
                       )}
                     </button>
                   )}
+                  */}
                 </div>
               </div>
             </div>

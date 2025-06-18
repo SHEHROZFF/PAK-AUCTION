@@ -493,71 +493,127 @@ export default function ProductSubmissionsPage() {
 
       {/* Modal */}
       {showModal && selectedSubmission && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          {/* Backdrop with blur effect */}
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" />
+          
+          {/* Modal Container */}
+          <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div className="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 sm:my-8 sm:w-full sm:max-w-3xl">
               {/* Modal Header */}
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {modalType === 'view' && 'Submission Details'}
-                  {modalType === 'review' && 'Review Submission'}
-                  {modalType === 'convert' && 'Convert to Auction'}
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <span className="sr-only">Close</span>
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+              <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 sm:px-8 sm:py-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
+                        <i className={`fas ${modalType === 'view' ? 'fa-eye' : modalType === 'review' ? 'fa-clipboard-check' : 'fa-exchange-alt'} text-white text-lg`}></i>
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold leading-6 text-white">
+                        {modalType === 'view' && 'Submission Details'}
+                        {modalType === 'review' && 'Review Submission'}
+                        {modalType === 'convert' && 'Convert to Auction'}
+                      </h3>
+                      <p className="text-sm text-indigo-100">
+                        {modalType === 'view' && 'View product submission details'}
+                        {modalType === 'review' && 'Update status and add admin notes'}
+                        {modalType === 'convert' && 'Convert this submission to an auction'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="rounded-lg p-2 text-white/80 hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200"
+                  >
+                    <i className="fas fa-times text-lg"></i>
+                  </button>
+                </div>
               </div>
 
-              {/* Modal Content */}
-              <div className="max-h-96 overflow-y-auto">
+              {/* Modal Body */}
+              <div className="max-h-[calc(100vh-200px)] overflow-y-auto">
                 {modalType === 'view' && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-700">Product Information</h4>
-                        <p><strong>Name:</strong> {selectedSubmission.productName}</p>
-                        <p><strong>Brand:</strong> {selectedSubmission.brand || 'N/A'}</p>
-                        <p><strong>Category:</strong> {selectedSubmission.category}</p>
-                        <p><strong>Condition:</strong> {selectedSubmission.condition}</p>
-                        <p><strong>Expected Price:</strong> ₨{selectedSubmission.expectedPrice.toLocaleString()}</p>
+                  <div className="space-y-6 p-6 sm:p-8">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                      <div className="mb-4 flex items-center space-x-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
+                          <i className="fas fa-box text-indigo-600"></i>
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-900">Product Information</h4>
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-700">Seller Information</h4>
-                        <p><strong>Name:</strong> {selectedSubmission.sellerName}</p>
-                        <p><strong>Email:</strong> {selectedSubmission.sellerEmail}</p>
-                        <p><strong>Phone:</strong> {selectedSubmission.sellerPhone}</p>
-                        <p><strong>City:</strong> {selectedSubmission.city}</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Name:</span> {selectedSubmission.productName}</p>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Brand:</span> {selectedSubmission.brand || 'N/A'}</p>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Category:</span> {selectedSubmission.category}</p>
+                        </div>
+                        <div>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Condition:</span> {selectedSubmission.condition}</p>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Expected Price:</span> ₨{selectedSubmission.expectedPrice.toLocaleString()}</p>
+                        </div>
                       </div>
                     </div>
                     
-                    <div>
-                      <h4 className="font-semibold text-gray-700">Description</h4>
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                      <div className="mb-4 flex items-center space-x-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+                          <i className="fas fa-user text-purple-600"></i>
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-900">Seller Information</h4>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Name:</span> {selectedSubmission.sellerName}</p>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Email:</span> {selectedSubmission.sellerEmail}</p>
+                        </div>
+                        <div>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Phone:</span> {selectedSubmission.sellerPhone}</p>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">City:</span> {selectedSubmission.city}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                      <div className="mb-4 flex items-center space-x-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                          <i className="fas fa-align-left text-green-600"></i>
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-900">Description</h4>
+                      </div>
                       <p className="text-gray-600">{selectedSubmission.description}</p>
                     </div>
 
-                    <div>
-                      <h4 className="font-semibold text-gray-700">Images ({selectedSubmission.images.length})</h4>
-                      <div className="grid grid-cols-3 gap-2 mt-2">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                      <div className="mb-4 flex items-center space-x-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+                          <i className="fas fa-images text-amber-600"></i>
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-900">Images ({selectedSubmission.images.length})</h4>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
                         {selectedSubmission.images.map((image, index) => (
                           <img
                             key={index}
                             src={image.url}
                             alt={`Product ${index + 1}`}
-                            className="w-full h-20 object-cover rounded"
+                            className="w-full h-24 object-cover rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                           />
                         ))}
                       </div>
                     </div>
 
                     {selectedSubmission.adminNotes && (
-                      <div>
-                        <h4 className="font-semibold text-gray-700">Admin Notes</h4>
+                      <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                        <div className="mb-4 flex items-center space-x-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+                            <i className="fas fa-sticky-note text-blue-600"></i>
+                          </div>
+                          <h4 className="text-lg font-semibold text-gray-900">Admin Notes</h4>
+                        </div>
                         <p className="text-gray-600">{selectedSubmission.adminNotes}</p>
                       </div>
                     )}
@@ -565,34 +621,53 @@ export default function ProductSubmissionsPage() {
                 )}
 
                 {modalType === 'review' && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                      <select
-                        value={reviewData.status}
-                        onChange={(e) => setReviewData({ ...reviewData, status: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                      >
-                        <option value="">Select Status</option>
-                        <option value="UNDER_REVIEW">Under Review</option>
-                        <option value="APPROVED">Approved</option>
-                        <option value="REJECTED">Rejected</option>
-                      </select>
+                  <div className="space-y-6 p-6 sm:p-8">
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                      <div className="mb-4 flex items-center space-x-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
+                          <i className="fas fa-tasks text-indigo-600"></i>
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-900">Update Status</h4>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select
+                          value={reviewData.status}
+                          onChange={(e) => setReviewData({ ...reviewData, status: e.target.value })}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                          <option value="">Select Status</option>
+                          <option value="UNDER_REVIEW">Under Review</option>
+                          <option value="APPROVED">Approved</option>
+                          <option value="REJECTED">Rejected</option>
+                        </select>
+                      </div>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Admin Notes</label>
-                      <textarea
-                        value={reviewData.adminNotes}
-                        onChange={(e) => setReviewData({ ...reviewData, adminNotes: e.target.value })}
-                        rows={4}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2"
-                        placeholder="Add notes about your review decision..."
-                      />
+                    <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-6">
+                      <div className="mb-4 flex items-center space-x-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+                          <i className="fas fa-comment-alt text-purple-600"></i>
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-900">Admin Notes</h4>
+                      </div>
+                      
+                      <div>
+                        <textarea
+                          value={reviewData.adminNotes}
+                          onChange={(e) => setReviewData({ ...reviewData, adminNotes: e.target.value })}
+                          rows={4}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          placeholder="Add notes about your review decision..."
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
 
+                {/* Convert to Auction - Commented out as requested */}
+                {/*
                 {modalType === 'convert' && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -663,36 +738,61 @@ export default function ProductSubmissionsPage() {
                     </div>
                   </div>
                 )}
+                */}
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                
-                {modalType === 'review' && (
+              <div className="bg-gray-50 px-6 py-4 sm:px-8 sm:py-6">
+                <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-3 space-y-3 space-y-reverse sm:space-y-0">
                   <button
-                    onClick={() => updateSubmissionStatus(selectedSubmission._id, reviewData.status, reviewData.adminNotes)}
-                    disabled={!reviewData.status || actionLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="inline-flex justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200"
                   >
-                    {actionLoading ? 'Updating...' : 'Update Status'}
+                    <i className="fas fa-times mr-2"></i>
+                    Cancel
                   </button>
-                )}
-                
-                {modalType === 'convert' && (
-                  <button
-                    onClick={() => convertToAuction(selectedSubmission._id)}
-                    disabled={!conversionData.basePrice || !conversionData.endTime || !conversionData.categoryId || actionLoading}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    {actionLoading ? 'Converting...' : 'Convert to Auction'}
-                  </button>
-                )}
+                  
+                  {modalType === 'review' && (
+                    <button
+                      onClick={() => updateSubmissionStatus(selectedSubmission._id, reviewData.status, reviewData.adminNotes)}
+                      disabled={!reviewData.status || actionLoading}
+                      className="inline-flex justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      {actionLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-save mr-2"></i>
+                          Update Status
+                        </>
+                      )}
+                    </button>
+                  )}
+                  
+                  {modalType === 'convert' && (
+                    <button
+                      onClick={() => convertToAuction(selectedSubmission._id)}
+                      disabled={!conversionData.basePrice || !conversionData.endTime || !conversionData.categoryId || actionLoading}
+                      className="inline-flex justify-center rounded-lg border border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      {actionLoading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Converting...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-exchange-alt mr-2"></i>
+                          Convert to Auction
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>

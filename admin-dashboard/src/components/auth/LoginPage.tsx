@@ -93,8 +93,7 @@ export function LoginPage() {
         if (input.type === 'email' || input.type === 'password' || input.type === 'text') {
           input.style.color = '#333333';
           input.style.backgroundColor = 'white';
-          // @ts-ignore
-          input.style.webkitTextFillColor = '#333333';
+          (input.style as any).webkitTextFillColor = '#333333';
         }
       });
     };

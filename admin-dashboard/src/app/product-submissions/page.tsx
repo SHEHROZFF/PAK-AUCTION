@@ -600,7 +600,7 @@ export default function ProductSubmissionsPage() {
                         {selectedSubmission.images.map((image, index) => (
                           <img
                             key={index}
-                            src={image.url}
+                            src={`${process.env.NEXT_PUBLIC_API_URL}${image.url}`}
                             alt={`Product ${index + 1}`}
                             className="w-full h-24 object-cover rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                           />

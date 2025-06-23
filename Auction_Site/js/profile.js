@@ -634,7 +634,7 @@ class ProfileManager {
           </span>
         </div>
         <div class="text-sm text-gray-600 space-y-1">
-          <p><i class="fas fa-tag mr-1"></i>Current Bid: $${auction.currentBid || auction.startingBid}</p>
+          <p><i class="fas fa-tag mr-1"></i>Current Bid: ${this.formatCurrency(auction.currentBid || auction.startingBid)}</p>
           <p><i class="fas fa-eye mr-1"></i>Bids: ${auction._count?.bids || 0}</p>
           <p><i class="fas fa-clock mr-1"></i>Ends: ${new Date(auction.endTime).toLocaleDateString()}</p>
         </div>
@@ -666,8 +666,8 @@ class ProfileManager {
           </span>
         </div>
         <div class="text-sm text-gray-600 space-y-1">
-          <p><i class="fas fa-money-bill mr-1"></i>Your Bid: $${bid.amount}</p>
-          <p><i class="fas fa-tag mr-1"></i>Current Bid: $${bid.auction?.currentBid || 'N/A'}</p>
+          <p><i class="fas fa-money-bill mr-1"></i>Your Bid: ${this.formatCurrency(bid.amount)}</p>
+          <p><i class="fas fa-tag mr-1"></i>Current Bid: ${bid.auction?.currentBid ? this.formatCurrency(bid.auction.currentBid) : 'N/A'}</p>
           <p><i class="fas fa-clock mr-1"></i>Bid Time: ${new Date(bid.createdAt).toLocaleString()}</p>
         </div>
       </div>
@@ -702,6 +702,17 @@ class ProfileManager {
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  }
+
+  // Format currency using utility manager
+  formatCurrency(amount) {
+    // Use the utility manager if available, otherwise fallback to default formatting
+    if (window.utilityManager) {
+      return window.utilityManager.formatCurrency(amount);
+    }
+    
+    // Fallback formatting
+    return 'Rs. ' + Number(amount).toLocaleString();
   }
 
   // Make authenticated API request

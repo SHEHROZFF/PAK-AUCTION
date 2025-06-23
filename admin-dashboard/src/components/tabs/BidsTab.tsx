@@ -9,6 +9,7 @@ import {
   setStatus,
   setPage
 } from '@/store/slices/bidsSlice';
+import { formatCurrency, useCurrencyFormatter } from '../../utils/formatters';
 
 export function BidsTab() {
   const dispatch = useAppDispatch();
@@ -24,6 +25,9 @@ export function BidsTab() {
   } = useAppSelector((state) => state.bids);
 
   const [selectedBid, setSelectedBid] = useState<any>(null);
+
+  // Use our currency formatter hook
+  const formatCurrencyValue = useCurrencyFormatter();
 
   useEffect(() => {
     dispatch(fetchBids({
@@ -212,7 +216,7 @@ export function BidsTab() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-bold text-gray-900">
-                          ${bid.amount?.toLocaleString()}
+                          {formatCurrencyValue(bid.amount)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -352,7 +356,7 @@ export function BidsTab() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Amount</label>
-                  <p className="text-sm font-bold text-gray-900">${selectedBid.amount?.toLocaleString()}</p>
+                  <p className="text-sm font-bold text-gray-900">{formatCurrencyValue(selectedBid.amount)}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Status</label>

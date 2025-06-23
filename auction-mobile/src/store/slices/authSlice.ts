@@ -48,13 +48,13 @@ export const loginUser = createAsyncThunk(
           };
         } else {
           // Fallback to login response data if profile fetch fails
-          await apiService.storeAuthData(
-            response.data.token,
-            response.data.refreshToken,
-            response.data.user
-          );
+        await apiService.storeAuthData(
+          response.data.token,
+          response.data.refreshToken,
+          response.data.user
+        );
           
-          return response.data;
+        return response.data;
         }
       }
       throw new Error(response.message || 'Login failed');

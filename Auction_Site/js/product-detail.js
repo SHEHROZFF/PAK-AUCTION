@@ -429,22 +429,22 @@ class ProductDetailManager {
 
     // Base price - matches HTML ID
     const basePriceEl = document.getElementById('base-price');
-    if (basePriceEl) basePriceEl.textContent = `$${Number(this.auction.basePrice).toLocaleString()}`;
+    if (basePriceEl) basePriceEl.textContent = this.formatCurrency(this.auction.basePrice);
 
     // Current bid - matches HTML ID
     const currentBidEl = document.getElementById('current-bid');
     if (currentBidEl) {
       const currentBid = this.auction.currentBid || this.auction.basePrice;
-      currentBidEl.textContent = `$${Number(currentBid).toLocaleString()}`;
+      currentBidEl.textContent = this.formatCurrency(currentBid);
     }
 
     // Bid increment
     const bidIncrementEl = document.getElementById('bid-increment');
-    if (bidIncrementEl) bidIncrementEl.textContent = `$${Number(this.auction.bidIncrement || 10).toLocaleString()}`;
+    if (bidIncrementEl) bidIncrementEl.textContent = this.formatCurrency(this.auction.bidIncrement || 10);
 
     // Entry fee
     const entryFeeEl = document.getElementById('entry-fee');
-    if (entryFeeEl) entryFeeEl.textContent = `$${Number(this.auction.entryFee || 0).toLocaleString()}`;
+    if (entryFeeEl) entryFeeEl.textContent = this.formatCurrency(this.auction.entryFee || 0);
 
     // Bid count - try multiple possible IDs
     const bidCountEl = document.getElementById('bid-count') || document.getElementById('bid-count-display');
@@ -471,13 +471,13 @@ class ProductDetailManager {
     const minBidEl = document.getElementById('min-bid');
     if (minBidEl) {
       const minimumBid = (this.auction.currentBid || this.auction.basePrice) + (this.auction.bidIncrement || 10);
-      minBidEl.textContent = Number(minimumBid).toLocaleString();
+      minBidEl.textContent = this.formatCurrency(minimumBid).replace(/[^\d.,]/g, '');
     }
 
     // Fee amount for payment
     const feeAmountEl = document.getElementById('fee-amount');
     if (feeAmountEl) {
-      feeAmountEl.textContent = `$${Number(this.auction.entryFee || 0).toLocaleString()}`;
+      feeAmountEl.textContent = this.formatCurrency(this.auction.entryFee || 0);
     }
   }
 
@@ -628,7 +628,7 @@ class ProductDetailManager {
 
     // Update minimum bid display
     if (minBidEl) {
-      minBidEl.textContent = Number(minBidAmount).toLocaleString();
+      minBidEl.textContent = this.formatCurrency(minBidAmount).replace(/[^\d.,]/g, '');
     }
 
     // Update button design and text based on bid status
@@ -649,7 +649,7 @@ class ProductDetailManager {
       placeBidBtn.innerHTML = `
         <div class="flex items-center justify-center pointer-events-none">
           <i class="fas ${isWinning ? 'fa-trophy' : 'fa-arrow-up'} mr-2"></i>
-          <span>Update Bid - Current: $${userBidAmount.toLocaleString()} (${buttonText})</span>
+          <span>Update Bid - Current: ${this.formatCurrency(userBidAmount)} (${buttonText})</span>
         </div>
       `;
       
@@ -658,7 +658,7 @@ class ProductDetailManager {
       
       // Update input placeholder for existing bidders - be more specific about minimum
       const minimumRequired = userBidAmount + (this.auction.bidIncrement || 1);
-      bidInput.placeholder = `Enter amount higher than $${userBidAmount.toLocaleString()} (min: $${minimumRequired.toLocaleString()})`;
+      bidInput.placeholder = `Enter amount higher than ${this.formatCurrency(userBidAmount)} (min: ${this.formatCurrency(minimumRequired)})`;
       bidInput.min = minimumRequired;
       
       console.log('🎯 Updated bid interface for existing bidder:', {
@@ -674,7 +674,7 @@ class ProductDetailManager {
       placeBidBtn.innerHTML = `
         <div class="flex items-center justify-center pointer-events-none">
           <i class="fas fa-gavel mr-2"></i>
-          <span>Place Your Bid - Minimum: $${Number(minBidAmount).toLocaleString()}</span>
+          <span>Place Your Bid - Minimum: ${this.formatCurrency(minBidAmount)}</span>
         </div>
       `;
       
@@ -729,10 +729,10 @@ class ProductDetailManager {
         </div>
         <div class="text-right">
           <div class="text-2xl font-bold ${isWinning ? 'text-green-700' : 'text-orange-700'} mb-1">
-            $${currentBid.toLocaleString()}
+            ${this.formatCurrency(currentBid)}
           </div>
           <div class="text-sm ${isWinning ? 'text-green-600' : 'text-orange-600'} font-medium">
-            Min. increase: $${((minBid - currentBid) || this.auction.bidIncrement || 10).toLocaleString()}
+            Min. increase: ${this.formatCurrency((minBid - currentBid) || this.auction.bidIncrement || 10)}
           </div>
         </div>
       </div>
@@ -799,7 +799,7 @@ class ProductDetailManager {
           <i class="fas fa-trophy text-green-500 text-2xl mt-1 mr-4"></i>
           <div class="flex-1">
             <h3 class="font-bold text-green-800 text-xl mb-2">🎉 Congratulations! You Won!</h3>
-            <p class="text-green-700 mb-4">You are the winning bidder for this auction with a bid of <strong>$${winningAmount.toLocaleString()}</strong></p>
+            <p class="text-green-700 mb-4">You are the winning bidder for this auction with a bid of <strong>${this.formatCurrency(winningAmount)}</strong></p>
             
             <div class="bg-white border border-green-200 rounded-lg p-4 mb-4">
               <h4 class="font-semibold text-gray-800 mb-2">Payment Required</h4>
@@ -807,7 +807,7 @@ class ProductDetailManager {
               <div class="flex items-center justify-between">
           <div>
                   <span class="text-sm text-gray-500">Total Amount:</span>
-                  <span class="text-2xl font-bold text-gray-800 ml-2">$${winningAmount.toLocaleString()}</span>
+                  <span class="text-2xl font-bold text-gray-800 ml-2">${this.formatCurrency(winningAmount)}</span>
                 </div>
               <button 
                   id="pay-winning-amount-btn" 
@@ -926,7 +926,7 @@ class ProductDetailManager {
               <p class="font-medium">${this.auction.title}</p>
               <p class="text-sm text-gray-600">Winning Bid Amount</p>
             </div>
-            <p class="text-xl font-bold text-green-600">$${paymentData.amount.toLocaleString()}</p>
+            <p class="text-xl font-bold text-green-600">${this.formatCurrency(paymentData.amount)}</p>
           </div>
         </div>
         
@@ -1102,7 +1102,7 @@ class ProductDetailManager {
           <!-- Submit Button -->
           <button type="submit" id="winner-submit-payment" 
                   class="w-full bg-green-600 text-white py-4 rounded-lg hover:bg-green-700 transition duration-300 font-semibold text-lg">
-            <i class="fas fa-credit-card mr-2"></i>Complete Purchase - $${paymentData.amount.toLocaleString()}
+            <i class="fas fa-credit-card mr-2"></i>Complete Purchase - ${this.formatCurrency(paymentData.amount)}
           </button>
         </form>
         </div>
@@ -1379,7 +1379,7 @@ class ProductDetailManager {
       bidHistoryList.innerHTML = this.bids.map(bid => `
         <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
             <div>
-            <p class="font-semibold text-lg text-gray-800">$${Number(bid.amount).toLocaleString()}</p>
+            <p class="font-semibold text-lg text-gray-800">${this.formatCurrency(bid.amount)}</p>
             <p class="text-sm text-gray-600">by ${bid.bidder?.username || bid.bidder?.firstName || 'Anonymous'}</p>
             </div>
             <div class="text-right">
@@ -1514,13 +1514,13 @@ class ProductDetailManager {
       
       if (bidAmount <= currentUserBid) {
         console.log('❌ Bid not higher than current bid');
-        alert(`Your new bid must be higher than your current bid of $${currentUserBid.toLocaleString()}`);
+        alert(`Your new bid must be higher than your current bid of ${this.formatCurrency(currentUserBid)}`);
         return;
       }
       
       if (bidAmount < minimumRequired) {
         console.log('❌ Bid below minimum required');
-        alert(`Your new bid must be at least $${minimumRequired.toLocaleString()} (your current bid + bid increment)`);
+        alert(`Your new bid must be at least ${this.formatCurrency(minimumRequired)} (your current bid + bid increment)`);
         return;
       }
     } else {
@@ -1530,7 +1530,7 @@ class ProductDetailManager {
       
       if (bidAmount < minimumRequired) {
         console.log('❌ Bid below auction minimum');
-        alert(`Your bid must be at least $${minimumRequired.toLocaleString()} (current highest bid + bid increment)`);
+        alert(`Your bid must be at least ${this.formatCurrency(minimumRequired)} (current highest bid + bid increment)`);
         return;
       }
     }
@@ -1577,8 +1577,8 @@ class ProductDetailManager {
         
         // Show success message
         const successMessage = isUpdate ? 
-          `🎉 Bid updated successfully! From $${previousAmount.toLocaleString()} to $${bidAmount.toLocaleString()}` :
-          `🎉 Bid placed successfully! Amount: $${bidAmount.toLocaleString()}`;
+          `🎉 Bid updated successfully! From ${this.formatCurrency(previousAmount)} to ${this.formatCurrency(bidAmount)}` :
+          `🎉 Bid placed successfully! Amount: ${this.formatCurrency(bidAmount)}`;
         
         this.showSuccess(successMessage);
         
@@ -1922,7 +1922,7 @@ class ProductDetailManager {
       console.error('❌ Payment error:', error);
       this.showModalError(error.message || 'Payment failed. Please try again.');
       submitButton.disabled = false;
-      submitButton.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Complete Purchase - $' + this.currentPaymentData.amount.toLocaleString();
+      submitButton.innerHTML = `<i class="fas fa-credit-card mr-2"></i>Complete Purchase - ${this.formatCurrency(this.currentPaymentData.amount)}`;
     }
   }
 
@@ -2049,6 +2049,27 @@ class ProductDetailManager {
         errorDiv.style.display = 'none';
       }
     }, 5000);
+  }
+
+  // Utility methods
+  formatCurrency(amount) {
+    // Use the utility manager if available, otherwise fallback to default formatting
+    if (window.utilityManager) {
+      return window.utilityManager.formatCurrency(amount);
+    }
+    
+    // Fallback formatting
+    return 'Rs. ' + Number(amount).toLocaleString();
+  }
+
+  getStatusClasses(status) {
+    const classes = {
+      'ACTIVE': 'bg-green-100 text-green-800',
+      'ENDED': 'bg-red-100 text-red-800',
+      'CANCELLED': 'bg-gray-100 text-gray-800',
+      'DRAFT': 'bg-yellow-100 text-yellow-800'
+    };
+    return classes[status] || 'bg-gray-100 text-gray-800';
   }
 }
 

@@ -6,6 +6,7 @@ import auctionsSlice from './slices/auctionsSlice';
 import bidsSlice from './slices/bidsSlice';
 import categoriesSlice from './slices/categoriesSlice';
 import settingsSlice from './slices/settingsSlice';
+import notificationsSlice from './slices/notificationsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     bids: bidsSlice,
     categories: categoriesSlice,
     settings: settingsSlice,
+    notifications: notificationsSlice,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

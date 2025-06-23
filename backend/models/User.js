@@ -82,7 +82,11 @@ const userSchema = new mongoose.Schema({
   profilePhoto: {
     type: String,
     trim: true
-  }
+  },
+  pushTokens: [{
+    type: String,
+    trim: true
+  }]
 }, {
   timestamps: true
 });

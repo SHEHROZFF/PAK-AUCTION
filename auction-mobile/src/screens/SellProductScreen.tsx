@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ import { scale, verticalScale, scaleFont } from '../utils/responsive';
 import InputField from '../components/common/InputField';
 import Button from '../components/common/Button';
 import PatternBackground from '../components/common/PatternBackground';
+import { getCurrencySymbol } from '../utils/formatCurrency';
 
 const SellProductScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -159,7 +161,7 @@ const SellProductScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         activeOpacity={0.7}
       >
         <View style={styles.selectFieldContent}>
-          <Ionicons name={icon} size={scale(20)} color={THEME_COLORS.gray[500]} />
+          <Ionicons name={icon} size={scale(20)} color={THEME_COLORS.gray[400]} />
           <Text style={[
             styles.selectFieldText,
             !value && styles.placeholderText
@@ -178,40 +180,54 @@ const SellProductScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-            <Ionicons name="arrow-back" size={scale(24)} color={THEME_COLORS.gray[800]} />
+          <TouchableOpacity 
+            style={styles.headerButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={scale(24)} color={THEME_COLORS.gray[700]} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Sell Product</Text>
           <View style={{ width: scale(44) }} />
         </View>
 
         <ScrollView 
-          style={styles.content} 
+          style={styles.content}
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
         >
           {/* Introduction */}
           <View style={styles.introCard}>
             <View style={styles.introIcon}>
-              <Ionicons name="storefront" size={scale(40)} color={THEME_COLORS.primary[600]} />
+              <Ionicons name="pricetag" size={scale(40)} color={THEME_COLORS.primary[600]} />
             </View>
-            <Text style={styles.introTitle}>List Your Product</Text>
+            <Text style={styles.introTitle}>List Your Item</Text>
             <Text style={styles.introSubtitle}>
-              Fill in the details below to list your product for auction. Our team will review and approve it within 24 hours.
+              Fill in the details below to list your product for auction. Our team will review it within 24 hours.
             </Text>
           </View>
 
-          {/* Product Information */}
+          {/* Basic Info */}
           <View style={styles.formCard}>
-            <Text style={styles.sectionTitle}>Product Information</Text>
+            <Text style={styles.sectionTitle}>Basic Information</Text>
             
             <InputField
-              label="Product Name"
-              placeholder="e.g., Samsung Galaxy S22 Ultra"
+              label="Product Title"
+              placeholder="Enter a descriptive title"
               value={formData.productName}
               onChangeText={(text) => updateFormData('productName', text)}
-              leftIcon="pricetag-outline"
+              leftIcon="text-outline"
               error={errors.productName}
+            />
+
+            <InputField
+              label="Description"
+              placeholder="Describe your product in detail"
+              value={formData.description}
+              onChangeText={(text) => updateFormData('description', text)}
+              leftIcon="document-text-outline"
+              multiline
+              numberOfLines={4}
+              error={errors.description}
             />
 
             <SelectField
@@ -222,18 +238,6 @@ const SellProductScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               onSelect={(value) => updateFormData('category', value)}
               error={errors.category}
               icon="grid-outline"
-            />
-
-            <InputField
-              label="Description"
-              placeholder="Describe your product in detail..."
-              value={formData.description}
-              onChangeText={(text) => updateFormData('description', text)}
-              leftIcon="document-text-outline"
-              multiline={true}
-              numberOfLines={4}
-              error={errors.description}
-              style={{ height: scale(120) }}
             />
 
             <SelectField
@@ -252,7 +256,7 @@ const SellProductScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Pricing & Auction Details</Text>
             
             <InputField
-              label="Base Price (PKR)"
+              label={`Base Price (${getCurrencySymbol()})`}
               placeholder="Starting bid amount"
               value={formData.basePrice}
               onChangeText={(text) => updateFormData('basePrice', text)}
@@ -262,7 +266,7 @@ const SellProductScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             />
 
             <InputField
-              label="Bid Increment (PKR)"
+              label={`Bid Increment (${getCurrencySymbol()})`}
               placeholder="Minimum bid increase"
               value={formData.bidIncrement}
               onChangeText={(text) => updateFormData('bidIncrement', text)}

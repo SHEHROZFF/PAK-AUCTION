@@ -357,7 +357,7 @@ class WatchlistManager {
   renderWatchlistItem(item) {
     const auction = item.auction;
     const imageUrl = auction.images?.[0]?.url || 'https://via.placeholder.com/300x200?text=No+Image';
-    const timeLeft = this.calculateTimeLeft(auction.endTime);
+    const timeLeft = this.getTimeLeft(auction.endTime);
     
     return `
       <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -375,7 +375,7 @@ class WatchlistManager {
           <h3 class="font-semibold text-lg mb-2 line-clamp-2">${auction.title}</h3>
           <div class="flex justify-between items-center mb-2">
             <span class="text-sm text-gray-500">Current Bid</span>
-            <span class="font-bold text-lg text-primary-600">$${Number(auction.currentBid || auction.basePrice).toLocaleString()}</span>
+            <span class="font-bold text-lg text-primary-600">${this.formatCurrency(Number(auction.currentBid || auction.basePrice))}</span>
           </div>
           <div class="flex justify-between items-center mb-4">
             <span class="text-sm text-gray-500">Time Left</span>
@@ -401,26 +401,37 @@ class WatchlistManager {
     `;
   }
 
-  calculateTimeLeft(endTime) {
-    const now = new Date().getTime();
-    const end = new Date(endTime).getTime();
-    const timeLeft = end - now;
+  getTimeLeft(endTime) {
+    const now = new Date();
+    const end = new Date(endTime);
+    const diff = end - now;
 
-    if (timeLeft <= 0) {
+    if (diff <= 0) {
       return { expired: true, text: 'Ended' };
     }
 
-    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
     if (days > 0) {
       return { expired: false, text: `${days}d ${hours}h` };
     } else if (hours > 0) {
       return { expired: false, text: `${hours}h` };
     } else {
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
       return { expired: false, text: `${minutes}m` };
     }
+  }
+  
+  // Format currency using utility manager
+  formatCurrency(amount) {
+    // Use the utility manager if available, otherwise fallback to default formatting
+    if (window.utilityManager) {
+      return window.utilityManager.formatCurrency(amount);
+    }
+    
+    // Fallback formatting
+    return 'Rs. ' + Number(amount).toLocaleString();
   }
 
   showSuccess(message) {

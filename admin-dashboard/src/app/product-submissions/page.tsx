@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiService } from '@/services/apiService';
+import { formatCurrency, getCurrencySymbol } from '../../utils/formatters';
 
 interface ProductSubmission {
   _id: string;
@@ -86,6 +87,9 @@ export default function ProductSubmissionsPage() {
     status: '',
     adminNotes: ''
   });
+
+  // Get the currency symbol
+  const currencySymbol = getCurrencySymbol();
 
   useEffect(() => {
     loadSubmissions();
@@ -390,7 +394,7 @@ export default function ProductSubmissionsPage() {
                         {submission.category}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ₨{submission.expectedPrice.toLocaleString()}
+                        {formatCurrency(submission.expectedPrice)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(submission.status)}`}>
@@ -554,7 +558,7 @@ export default function ProductSubmissionsPage() {
                         </div>
                         <div>
                           <p className="mb-2"><span className="font-semibold text-gray-700">Condition:</span> {selectedSubmission.condition}</p>
-                          <p className="mb-2"><span className="font-semibold text-gray-700">Expected Price:</span> ₨{selectedSubmission.expectedPrice.toLocaleString()}</p>
+                          <p className="mb-2"><span className="font-semibold text-gray-700">Expected Price:</span> {formatCurrency(selectedSubmission.expectedPrice)}</p>
                         </div>
                       </div>
                     </div>
@@ -668,39 +672,37 @@ export default function ProductSubmissionsPage() {
                   </div>
                 )}
 
-                {/* Convert to Auction - Commented out as requested */}
-                {/*
                 {modalType === 'convert' && (
-                  <div className="space-y-4">
+                  <div className="space-y-6 p-6 sm:p-8">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Base Price (₨)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Base Price ({currencySymbol})</label>
                         <input
                           type="number"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           value={conversionData.basePrice}
-                          onChange={(e) => setConversionData({ ...conversionData, basePrice: e.target.value })}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          onChange={(e) => setConversionData({...conversionData, basePrice: e.target.value})}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Bid Increment (₨)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Bid Increment ({currencySymbol})</label>
                         <input
                           type="number"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           value={conversionData.bidIncrement}
-                          onChange={(e) => setConversionData({ ...conversionData, bidIncrement: e.target.value })}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          onChange={(e) => setConversionData({...conversionData, bidIncrement: e.target.value})}
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Entry Fee (₨)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Entry Fee ({currencySymbol})</label>
                         <input
                           type="number"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                           value={conversionData.entryFee}
-                          onChange={(e) => setConversionData({ ...conversionData, entryFee: e.target.value })}
-                          className="w-full border border-gray-300 rounded-md px-3 py-2"
+                          onChange={(e) => setConversionData({...conversionData, entryFee: e.target.value})}
                         />
                       </div>
                       <div>
@@ -740,7 +742,6 @@ export default function ProductSubmissionsPage() {
                     </div>
                   </div>
                 )}
-                */}
               </div>
 
               {/* Modal Footer */}
@@ -775,7 +776,6 @@ export default function ProductSubmissionsPage() {
                     </button>
                   )}
                   
-                  {/* Convert button commented out
                   {modalType === 'convert' && (
                     <button
                       onClick={() => convertToAuction(selectedSubmission._id)}
@@ -795,7 +795,6 @@ export default function ProductSubmissionsPage() {
                       )}
                     </button>
                   )}
-                  */}
                 </div>
               </div>
             </div>

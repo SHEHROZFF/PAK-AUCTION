@@ -5,6 +5,8 @@ import categoriesReducer from './slices/categoriesSlice';
 import auctionsReducer from './slices/auctionsSlice';
 import dashboardReducer from './slices/dashboardSlice';
 import userReducer from './slices/userSlice';
+import settingsReducer from './slices/settingsSlice';
+import notificationsReducer from './slices/notificationsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +15,8 @@ export const store = configureStore({
     auctions: auctionsReducer,
     dashboard: dashboardReducer,
     user: userReducer,
+    settings: settingsReducer,
+    notifications: notificationsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

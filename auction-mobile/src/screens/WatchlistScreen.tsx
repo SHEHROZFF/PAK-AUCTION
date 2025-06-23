@@ -17,6 +17,7 @@ import { scale, verticalScale, scaleFont } from '../utils/responsive';
 import PatternBackground from '../components/common/PatternBackground';
 import { getFullImageUrl } from '../constants/api';
 import { UserWatchlistItem } from '../store/slices/userSlice';
+import { formatCurrency } from '../utils/formatCurrency';
 
 interface WatchlistScreenProps {
   navigation: any;
@@ -96,10 +97,10 @@ const WatchlistScreen: React.FC<WatchlistScreenProps> = ({ navigation }) => {
             <View style={styles.priceInfo}>
               <Text style={styles.priceLabel}>Current Bid</Text>
               <Text style={styles.currentBid}>
-                Rs. {(auction.currentBid || auction.basePrice || 0).toLocaleString()}
+                {formatCurrency(auction.currentBid || auction.basePrice || 0)}
               </Text>
               <Text style={styles.basePrice}>
-                Base: Rs. {(auction.basePrice || 0).toLocaleString()}
+                Base: {formatCurrency(auction.basePrice || 0)}
               </Text>
             </View>
             

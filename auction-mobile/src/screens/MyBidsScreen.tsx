@@ -17,6 +17,7 @@ import { scale, verticalScale, scaleFont } from '../utils/responsive';
 import PatternBackground from '../components/common/PatternBackground';
 import { getFullImageUrl } from '../constants/api';
 import { UserBid } from '../store/slices/userSlice';
+import { formatCurrency } from '../utils/formatCurrency';
 
 interface MyBidsScreenProps {
   navigation: any;
@@ -112,9 +113,9 @@ const MyBidsScreen: React.FC<MyBidsScreenProps> = ({ navigation }) => {
           <View style={styles.bidPricing}>
             <View style={styles.bidInfo}>
               <Text style={styles.bidLabel}>Your Bid</Text>
-              <Text style={styles.yourBid}>Rs. {item.amount.toLocaleString()}</Text>
+              <Text style={styles.yourBid}>{formatCurrency(item.amount)}</Text>
               <Text style={styles.currentBid}>
-                Current: Rs. {(auction.currentBid || auction.basePrice || 0).toLocaleString()}
+                Current: {formatCurrency(auction.currentBid || auction.basePrice || 0)}
               </Text>
             </View>
             

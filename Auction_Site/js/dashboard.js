@@ -178,17 +178,17 @@ class DashboardManager {
               </span>
             </div>
           </div>
-          <div class="flex-1 min-w-0">
+          <div class="ml-4 flex-1">
             <h3 class="font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">${auction.title}</h3>
-            <div class="flex items-center space-x-4 mt-1">
-              <span class="text-sm text-gray-600">Starting: $${auction.startingBid}</span>
-              <span class="text-sm text-gray-600">Current: $${auction.currentBid || auction.startingBid}</span>
+            <div class="flex flex-col sm:flex-row sm:justify-between mt-1">
+              <span class="text-sm text-gray-600">Starting: ${this.formatCurrency(auction.startingBid)}</span>
+              <span class="text-sm text-gray-600">Current: ${this.formatCurrency(auction.currentBid || auction.startingBid)}</span>
             </div>
-            <div class="flex items-center space-x-4 mt-1">
-              <span class="text-xs text-gray-500">
+            <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+              <span class="flex items-center">
                 <i class="fas fa-hand-paper mr-1"></i>${auction._count?.bids || 0} bids
               </span>
-              <span class="text-xs text-gray-500">
+              <span class="flex items-center">
                 <i class="fas fa-heart mr-1"></i>${auction._count?.watchlist || 0} watching
               </span>
             </div>
@@ -246,19 +246,21 @@ class DashboardManager {
               </div>
             ` : ''}
           </div>
-          <div class="flex-1 min-w-0">
+          <div class="ml-4 flex-1">
             <h3 class="font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">${auction.title}</h3>
-            <div class="flex items-center space-x-4 mt-1">
+            <div class="flex flex-col sm:flex-row sm:justify-between mt-1">
               <span class="text-sm ${isWinning ? 'text-green-600 font-medium' : 'text-gray-600'}">
-                Your bid: $${bid.amount}
+                Your bid: ${this.formatCurrency(bid.amount)}
               </span>
-              <span class="text-sm text-gray-600">Current: $${auction.currentBid}</span>
+              <span class="text-sm text-gray-600">Current: ${this.formatCurrency(auction.currentBid)}</span>
             </div>
-            <div class="flex items-center space-x-2 mt-1">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${this.getStatusColor(auction.status)}">
-                ${auction.status}
+            <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+              <span class="flex items-center">
+                <i class="fas fa-hand-paper mr-1"></i>${auction._count?.bids || 0} bids
               </span>
-              <span class="text-xs text-gray-500">${this.formatDate(bid.createdAt)}</span>
+              <span class="flex items-center">
+                <i class="fas fa-heart mr-1"></i>${auction._count?.watchlist || 0} watching
+              </span>
             </div>
           </div>
           <div class="text-right">
@@ -317,7 +319,7 @@ class DashboardManager {
                   <div class="p-3">
                     <h4 class="font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">${auction.title}</h4>
                     <div class="flex justify-between items-center mt-2">
-                      <span class="text-sm font-medium text-primary-600">$${auction.currentBid || auction.startingBid}</span>
+                      <span class="text-sm font-medium text-primary-600">${this.formatCurrency(auction.currentBid || auction.startingBid)}</span>
                       <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${this.getStatusColor(auction.status)}">
                         ${auction.status}
                       </span>
@@ -466,9 +468,15 @@ class DashboardManager {
   }
 
   formatCurrency(amount) {
+    // Use the utility manager if available, otherwise fallback to default formatting
+    if (window.utilityManager) {
+      return window.utilityManager.formatCurrency(amount);
+    }
+    
+    // Fallback formatting
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+    currency: this.settings?.currency || 'PKR'
     }).format(amount);
   }
 

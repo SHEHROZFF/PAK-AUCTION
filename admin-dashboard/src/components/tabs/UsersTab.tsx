@@ -182,7 +182,7 @@ export function UsersTab() {
   };
 
   const handleDeleteUser = (id: string, userName: string) => {
-    if (window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+    if (window.confirm(`Are you sure you want to delete user "${userName}"? This will delete ALL user data including auctions, bids, payments, etc. This action cannot be undone.`)) {
       dispatch(deleteUserAction(id));
     }
   };

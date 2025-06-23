@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['BID_PLACED', 'BID_OUTBID', 'AUCTION_WON', 'AUCTION_ENDED', 'AUCTION_STARTING', 'GENERAL'],
+    enum: ['BID_PLACED', 'BID_OUTBID', 'AUCTION_WON', 'AUCTION_ENDED', 'AUCTION_STARTING', 'GENERAL', 'SYSTEM', 'ANNOUNCEMENT'],
     required: true
   },
   isRead: {

@@ -15,6 +15,7 @@ import {
 } from '@/store/slices/auctionsSlice';
 import { fetchCategories } from '@/store/slices/categoriesSlice';
 import { apiService } from '@/services/apiService';
+import { formatCurrency, useCurrencyFormatter, getCurrencySymbol } from '../../utils/formatters';
 
 interface AuctionFormData {
   title: string;
@@ -70,6 +71,9 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [originalImages, setOriginalImages] = useState<ImageData[]>([]);
+
+  // Get the currency symbol
+  const currencySymbol = getCurrencySymbol();
 
   useEffect(() => {
     if (auction) {
@@ -405,7 +409,7 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
                     <i className="fas fa-dollar-sign text-green-600"></i>
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-900">Pricing Information</h4>
+                  <h4 className="text-lg font-semibold text-gray-900">Price Information</h4>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -415,7 +419,7 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
+                        <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
                       </div>
                       <input
                         type="number"
@@ -436,7 +440,7 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
+                        <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
                       </div>
                       <input
                         type="number"
@@ -456,7 +460,7 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
+                        <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
                       </div>
                       <input
                         type="number"
@@ -479,7 +483,7 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
+                        <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
                       </div>
                       <input
                         type="number"
@@ -499,7 +503,7 @@ function AuctionModal({ auction, isOpen, onClose, onSave, categories }: AuctionM
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-gray-500 sm:text-sm">$</span>
+                        <span className="text-gray-500 sm:text-sm">{currencySymbol}</span>
                       </div>
                       <input
                         type="number"
@@ -754,6 +758,9 @@ export function ProductsTab() {
   const [editingAuction, setEditingAuction] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Use our currency formatter hook
+  const formatCurrencyValue = useCurrencyFormatter();
+
   useEffect(() => {
     dispatch(fetchAuctions({
       page: currentPage,
@@ -989,10 +996,10 @@ export function ProductsTab() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
-                        <div className="font-medium">Current: ${auction.currentBid?.toLocaleString() || auction.basePrice?.toLocaleString()}</div>
-                        <div className="text-gray-500">Base: ${auction.basePrice?.toLocaleString()}</div>
+                        <div className="font-medium">Current: {formatCurrencyValue(auction.currentBid || auction.basePrice)}</div>
+                        <div className="text-gray-500">Base: {formatCurrencyValue(auction.basePrice)}</div>
                         {auction.reservePrice > 0 && (
-                          <div className="text-gray-500">Reserve: ${auction.reservePrice?.toLocaleString()}</div>
+                          <div className="text-gray-500">Reserve: {formatCurrencyValue(auction.reservePrice)}</div>
                         )}
                       </div>
                     </td>

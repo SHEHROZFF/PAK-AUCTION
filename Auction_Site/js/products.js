@@ -244,7 +244,7 @@ class ProductsManager {
           <div class="flex justify-between items-center mb-3">
             <div>
               <p class="text-xs text-gray-500">Current Bid</p>
-              <p class="text-xl font-bold text-green-600">$${Number(currentBid).toLocaleString()}</p>
+              <p class="text-xl font-bold text-green-600">${this.formatCurrency(currentBid)}</p>
             </div>
             <div class="text-right">
               <p class="text-xs text-gray-500">Bids</p>
@@ -368,6 +368,17 @@ class ProductsManager {
       case 'SCHEDULED': return 'Scheduled';
       default: return status;
     }
+  }
+
+  // Format currency using utility manager
+  formatCurrency(amount) {
+    // Use the utility manager if available, otherwise fallback to default formatting
+    if (window.utilityManager) {
+      return window.utilityManager.formatCurrency(amount);
+    }
+    
+    // Fallback formatting
+    return 'Rs. ' + Number(amount).toLocaleString();
   }
 
   // Render pagination

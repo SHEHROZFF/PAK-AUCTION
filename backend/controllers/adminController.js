@@ -3,6 +3,10 @@ const Auction = require('../models/Auction');
 const Bid = require('../models/Bid');
 const Category = require('../models/Category');
 const Notification = require('../models/Notification');
+const Watchlist = require('../models/Watchlist');
+const ProductSubmission = require('../models/ProductSubmission');
+const Payment = require('../models/Payment');
+const notificationService = require('../services/notificationService');
 
 class AdminController {
   // Dashboard Statistics
@@ -438,21 +442,9 @@ class AdminController {
     try {
       const { id } = req.params;
 
-      // Check if user has active auctions
-      const activeAuctions = await Auction.countDocuments({
-        sellerId: id,
-        status: { $in: ['ACTIVE', 'SCHEDULED'] }
-      });
-
-      if (activeAuctions > 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Cannot delete user with active auctions'
-        });
-      }
-
-      const user = await User.findByIdAndDelete(id);
-
+      // Check if user exists
+      const user = await User.findById(id);
+      
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -460,9 +452,49 @@ class AdminController {
         });
       }
 
+      // Always perform cascade delete for all user related data
+      console.log(`Performing cascade delete for user ${id}`);
+      
+      // Delete user's bids
+      const deletedBids = await Bid.deleteMany({ bidderId: id });
+      console.log(`Deleted ${deletedBids.deletedCount} bids`);
+      
+      // Delete user's auctions
+      const userAuctions = await Auction.find({ sellerId: id });
+      const auctionIds = userAuctions.map(auction => auction._id);
+      
+      // Delete bids on user's auctions
+      if (auctionIds.length > 0) {
+        const deletedAuctionBids = await Bid.deleteMany({ auctionId: { $in: auctionIds } });
+        console.log(`Deleted ${deletedAuctionBids.deletedCount} bids on user's auctions`);
+      }
+      
+      // Delete auctions
+      const deletedAuctions = await Auction.deleteMany({ sellerId: id });
+      console.log(`Deleted ${deletedAuctions.deletedCount} auctions`);
+      
+      // Delete user's watchlist entries
+      const deletedWatchlist = await Watchlist.deleteMany({ userId: id });
+      console.log(`Deleted ${deletedWatchlist.deletedCount} watchlist entries`);
+      
+      // Delete user's notifications
+      const deletedNotifications = await Notification.deleteMany({ userId: id });
+      console.log(`Deleted ${deletedNotifications.deletedCount} notifications`);
+      
+      // Delete user's product submissions
+      const deletedSubmissions = await ProductSubmission.deleteMany({ sellerId: id });
+      console.log(`Deleted ${deletedSubmissions.deletedCount} product submissions`);
+      
+      // Delete user's payment records
+      const deletedPayments = await Payment.deleteMany({ userId: id });
+      console.log(`Deleted ${deletedPayments.deletedCount} payment records`);
+
+      // Finally delete the user
+      await User.findByIdAndDelete(id);
+
       res.json({
         success: true,
-        message: 'User deleted successfully'
+        message: 'User and all related data deleted successfully'
       });
     } catch (error) {
       console.error('Delete user error:', error);
@@ -555,27 +587,60 @@ class AdminController {
     }
   }
 
-  // Send notification to all users
+  // Send notification to users
   async sendNotification(req, res) {
     try {
-      const { title, message, type = 'GENERAL' } = req.body;
+      const { title, message, type = 'GENERAL', targetUsers = 'all', userEmails } = req.body;
 
-      // Get all active users
-      const users = await User.find({ isActive: true }).select('_id');
+      if (!title || !message) {
+        return res.status(400).json({
+          success: false,
+          message: 'Title and message are required'
+        });
+      }
 
-      // Create notifications for all users
-      const notifications = users.map(user => ({
-        title,
-        message,
-        type,
-        userId: user._id
-      }));
+      let users = [];
 
-      await Notification.insertMany(notifications);
+      if (targetUsers === 'specific' && userEmails && Array.isArray(userEmails)) {
+        // Send to specific users by email
+        users = await User.find({ 
+          email: { $in: userEmails },
+          isActive: true 
+        }).select('_id email');
+
+        if (users.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: 'No active users found with the provided email addresses'
+          });
+        }
+      } else {
+        // Send to all active users
+        users = await User.find({ isActive: true }).select('_id email');
+      }
+
+      // Use notification service to create and send notifications
+      const notificationPromises = users.map(user => 
+        notificationService.createNotification({
+          userId: user._id,
+          title,
+          message,
+          type,
+          sendPush: true,
+          sendWebSocket: true
+        })
+      );
+
+      await Promise.all(notificationPromises);
 
       res.json({
         success: true,
-        message: `Notification sent to ${users.length} users`
+        message: `Notification sent to ${users.length} user${users.length !== 1 ? 's' : ''}`,
+        data: {
+          sentTo: users.length,
+          targetUsers,
+          userEmails: targetUsers === 'specific' ? users.map(u => u.email) : undefined
+        }
       });
     } catch (error) {
       console.error('Send notification error:', error);

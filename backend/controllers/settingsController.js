@@ -25,6 +25,45 @@ class SettingsController {
     }
   }
 
+  // Get public settings (no authentication required)
+  async getPublicSettings(req, res) {
+    try {
+      let settings = await Settings.findOne();
+      
+      // If no settings exist, create default settings
+      if (!settings) {
+        settings = new Settings({});
+        await settings.save();
+      }
+
+      // Only return public settings
+      const publicSettings = {
+        paymentSettings: {
+          general: {
+            currency: settings.paymentSettings?.general?.currency || 'PKR'
+          }
+        },
+        websiteSettings: {
+          general: {
+            websiteName: settings.websiteSettings?.general?.websiteName || 'Premium Auctions',
+            websiteDescription: settings.websiteSettings?.general?.websiteDescription || ''
+          }
+        }
+      };
+
+      res.json({
+        success: true,
+        data: publicSettings
+      });
+    } catch (error) {
+      console.error('Get public settings error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch public settings'
+      });
+    }
+  }
+
   // Update payment settings
   async updatePaymentSettings(req, res) {
     try {

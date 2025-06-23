@@ -4,10 +4,12 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const http = require('http');
 const config = require('./config');
 const connectDB = require('./config/database');
 const mongoose = require('mongoose');
 const path = require('path');
+const notificationService = require('./services/notificationService');
 require('dotenv').config();
 
 // Connect to MongoDB
@@ -149,13 +151,19 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = config.port;
-app.listen(PORT, () => {
+const server = http.createServer(app);
+
+// Initialize WebSocket server for real-time notifications
+notificationService.initializeWebSocket(server);
+
+server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📝 Environment: ${config.nodeEnv}`);
   console.log(`🌐 CORS: Allowing all development origins`);
   console.log(`🔐 Authentication system ready`);
   console.log(`📁 API available at: http://localhost:${PORT}/api`);
   console.log(`💡 Test endpoint: http://localhost:${PORT}/health`);
+  console.log(`📡 WebSocket server initialized for real-time notifications`);
   
   // Initialize auction scheduler
   AuctionScheduler.init();

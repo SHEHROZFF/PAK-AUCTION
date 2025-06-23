@@ -8,6 +8,7 @@ const Bid = require('../models/Bid');
 const Watchlist = require('../models/Watchlist');
 const Notification = require('../models/Notification');
 const AuctionImage = require('../models/AuctionImage');
+const notificationService = require('../services/notificationService');
 
 // Utility function to safely delete profile photo
 const deleteProfilePhoto = (photoPath) => {
@@ -472,6 +473,9 @@ const markNotificationRead = async (req, res) => {
       });
     }
 
+    // Broadcast notification read status via WebSocket
+    notificationService.broadcastNotificationRead(userId, id);
+
     res.json({
       success: true,
       message: 'Notification marked as read',
@@ -501,6 +505,9 @@ const markAllNotificationsRead = async (req, res) => {
       { userId, isRead: false },
       { isRead: true }
     );
+
+    // Send updated unread count via WebSocket
+    await notificationService.sendUnreadCount(userId);
 
     res.json({
       success: true,

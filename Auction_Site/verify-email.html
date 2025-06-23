@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Verification - PakAuction</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- Notification System -->
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -153,7 +155,6 @@
     <div id="footer-placeholder"></div>
 
     <!-- Scripts -->
-    <script src="js/auth.js"></script>
     <script>
         // Email verification handling using AuthManager
         document.addEventListener('DOMContentLoaded', function() {
@@ -242,7 +243,15 @@
             }, 100); // Small delay to ensure AuthManager is initialized
         });
     </script>
+    
+    <!-- Utility Functions -->
+    <script src="js/utility.js"></script>
+    <!-- Authentication System -->
+    <script src="js/auth.js"></script>
     <!-- Footer Script -->
     <script src="js/footer.js"></script>
-</body>
+
+    <!-- Notification System -->
+    <script src="js/notificationSystem.js"></script>
+  </body>
 </html> 

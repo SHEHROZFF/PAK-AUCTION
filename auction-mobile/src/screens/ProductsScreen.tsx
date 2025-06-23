@@ -21,6 +21,7 @@ import { THEME_COLORS, getFullImageUrl } from '../constants/api';
 import { scale, verticalScale, scaleFont, wp, hp } from '../utils/responsive';
 import PatternBackground from '../components/common/PatternBackground';
 import ProductsSkeleton from '../components/skeletons/ProductsSkeleton';
+import { formatCurrency } from '../utils/formatCurrency';
 
 interface ProductsScreenProps {
   navigation: any;
@@ -204,8 +205,8 @@ const ProductsScreen: React.FC<ProductsScreenProps> = ({ navigation, route }) =>
           <View style={styles.auctionPricing}>
             <View style={styles.priceInfo}>
               <Text style={styles.priceLabel}>Current Bid</Text>
-              <Text style={styles.currentBid}>Rs. {(item.currentBid || 0).toLocaleString()}</Text>
-              <Text style={styles.basePrice}>Base: Rs. {(item.basePrice || 0).toLocaleString()}</Text>
+              <Text style={styles.currentBid}>{formatCurrency(item.currentBid || 0)}</Text>
+              <Text style={styles.basePrice}>Base: {formatCurrency(item.basePrice || 0)}</Text>
             </View>
             
             <View style={styles.auctionStats}>

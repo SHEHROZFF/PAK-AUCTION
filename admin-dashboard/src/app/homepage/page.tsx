@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiService } from '@/services/apiService';
+import { formatCurrency } from '../../utils/formatters';
 
 interface Hero {
   title: string;
@@ -391,17 +392,13 @@ export default function HomepageManagementPage() {
             <option value="">🚫 No featured auction (use background image only)</option>
             {auctions.map((auction) => {
               const endDate = new Date(auction.endTime);
-              const isExpiringSoon = endDate.getTime() - Date.now() < 24 * 60 * 60 * 1000; // Less than 24 hours
-              const formattedEndDate = endDate.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              });
+              const formattedEndDate = endDate.toLocaleDateString();
+              const now = new Date();
+              const isExpiringSoon = (endDate.getTime() - now.getTime()) < (24 * 60 * 60 * 1000); // 24 hours
               
               return (
                 <option key={auction._id} value={auction._id}>
-                  🎯 {auction.title} | 💰 ${auction.currentBid || auction.basePrice} | 
+                  🎯 {auction.title} | 💰 {formatCurrency(auction.currentBid || auction.basePrice)} | 
                   📅 Ends {formattedEndDate} | 📁 {auction.category} | 
                   {isExpiringSoon ? '⚠️ URGENT' : '✅ ACTIVE'}
                 </option>
@@ -434,7 +431,7 @@ export default function HomepageManagementPage() {
                         <strong>{selectedAuction.title}</strong> by {selectedAuction.seller}
                       </p>
                       <p className="text-sm text-gray-600">
-                        Current bid: <strong>${selectedAuction.currentBid || selectedAuction.basePrice}</strong> | 
+                        Current bid: <strong>{formatCurrency(selectedAuction.currentBid || selectedAuction.basePrice)}</strong> | 
                         Category: <strong>{selectedAuction.category}</strong>
                       </p>
                       <p className="text-xs text-gray-500 mt-1">

@@ -15,6 +15,10 @@ const contactRoutes = require('./contact');
 const aboutRoutes = require('./about');
 const homepageRoutes = require('./homepage');
 const productSubmissionRoutes = require('./productSubmissions');
+const settingsController = require('../controllers/settingsController');
+
+// Public routes
+router.get('/settings', settingsController.getPublicSettings);
 
 // Use route modules
 router.use('/auth', authRoutes);
@@ -43,6 +47,7 @@ router.get('/', (req, res) => {
     availableRoutes: [
       'GET /api/',
       'GET /api/health',
+      'GET /api/settings',
       
       // Auth routes
       'POST /api/auth/register',

@@ -21,6 +21,7 @@ import { THEME_COLORS, getFullImageUrl } from '../constants/api';
 import { scale, verticalScale, scaleFont, wp, hp } from '../utils/responsive';
 import PatternBackground from '../components/common/PatternBackground';
 import HomeSkeleton from '../components/skeletons/HomeSkeleton';
+import { formatCurrency } from '../utils/formatCurrency';
 
 interface CategoryWithIcon extends Category {
   icon: keyof typeof Ionicons.glyphMap;
@@ -381,7 +382,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <View style={styles.auctionPricing}>
             <View>
               <Text style={styles.priceLabel}>Current Bid</Text>
-              <Text style={styles.currentBid}>Rs. {(item.currentBid || 0).toLocaleString()}</Text>
+              <Text style={styles.currentBid}>{formatCurrency(item.currentBid || 0)}</Text>
             </View>
             <View style={styles.auctionMeta}>
               <Text style={styles.timeLeft}>{item.timeRemaining || 'N/A'}</Text>

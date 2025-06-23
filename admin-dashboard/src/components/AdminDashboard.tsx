@@ -12,12 +12,13 @@ import { PaymentTab } from './tabs/PaymentTab';
 import { SettingsTab } from './tabs/SettingsTab';
 import { PagesTab } from './tabs/PagesTab';
 import { PopupsTab } from './tabs/PopupsTab';
+import NotificationsTab from './tabs/NotificationsTab';
 import ContactManagementPage from '@/app/contact/page';
 import AboutManagementPage from '@/app/about/page';
 import HomepageManagementPage from '@/app/homepage/page';
 import ProductSubmissionsPage from '@/app/product-submissions/page';
 
-export type TabType = 'dashboard' | 'products' | 'bids' | 'users' | 'categories' | 'payment' | 'settings' | 'pages' | 'popups' | 'contact' | 'about' | 'homepage' | 'product-submissions';
+export type TabType = 'dashboard' | 'products' | 'bids' | 'users' | 'categories' | 'payment' | 'settings' | 'pages' | 'popups' | 'notifications' | 'contact' | 'about' | 'homepage' | 'product-submissions';
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -51,6 +52,8 @@ export function AdminDashboard() {
         return <PaymentTab />;
       case 'settings':
         return <SettingsTab />;
+      case 'notifications':
+        return <NotificationsTab />;
       case 'contact':
         return <ContactManagementPage />;
       case 'about':

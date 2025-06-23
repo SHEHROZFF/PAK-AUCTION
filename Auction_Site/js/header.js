@@ -1,6 +1,6 @@
 /**
- * Shared Header Component
- * Eliminates header duplication across HTML files
+ * Unified Header Component
+ * Matches index.html design with proper auth and notification integration
  */
 
 class HeaderManager {
@@ -11,91 +11,72 @@ class HeaderManager {
   init() {
     this.renderHeader();
     this.bindHeaderEvents();
-    
-    // Listen for auth status changes
     this.setupAuthListener();
   }
 
-  // Setup authentication listener
   setupAuthListener() {
-    // Check auth status periodically and update header
     const checkAuthAndUpdate = () => {
       if (window.authManager) {
         this.updateAuthSection();
       }
     };
     
-    // Initial check
     setTimeout(checkAuthAndUpdate, 500);
-    
-    // Periodic checks
     setInterval(checkAuthAndUpdate, 5000);
   }
 
-  // Update authentication section of header
   updateAuthSection() {
-    const authSection = document.getElementById('auth-section');
+    const authButtons = document.getElementById('auth-buttons');
+    const userMenu = document.getElementById('user-menu');
     const mobileAuthSection = document.getElementById('mobile-auth-section');
     
-    // Also update hero section dashboard button
-    const dashboardHeroBtn = document.getElementById('dashboard-hero-btn');
-    const registerHeroBtn = document.getElementById('register-hero-btn');
+    if (!authButtons || !userMenu || !mobileAuthSection) return;
     
-    if (!authSection || !mobileAuthSection) return;
-    
-    if (window.authManager.currentUser) {
-      // User is logged in - show profile dropdown
+    if (window.authManager && window.authManager.currentUser) {
       const user = window.authManager.currentUser;
-      const userMenuHTML = `
-        <div class="relative">
-          <button id="user-menu-button" class="flex items-center space-x-2 text-gray-700 hover:text-primary-600 focus:outline-none">
-            <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-              <span class="text-sm font-medium text-primary-600">${user.firstName ? user.firstName.charAt(0) : 'U'}</span>
-            </div>
-            <span class="hidden md:block font-medium">${user.firstName || 'User'}</span>
-            <i class="fas fa-chevron-down text-xs"></i>
-          </button>
-          
-          <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 hidden">
-            <div class="py-1">
-              <div class="px-4 py-2 border-b border-gray-200">
-                <p class="text-sm font-medium text-gray-900">${user.firstName || ''} ${user.lastName || ''}</p>
-                <p class="text-xs text-gray-500">${user.email || ''}</p>
-              </div>
-              <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
-                <i class="fas fa-user mr-2"></i>My Profile
-              </a>
-              <a href="dashboard.html" id="dashboard-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
-                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-              </a>
-              <a href="products.html?filter=my-auctions" id="my-auctions-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
-                <i class="fas fa-gavel mr-2"></i>My Auctions
-              </a>
-              <a href="products.html?filter=my-bids" id="my-bids-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
-                <i class="fas fa-hand-paper mr-2"></i>My Bids
-              </a>
-              <a href="products.html?filter=watchlist" id="watchlist-link" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
-                <i class="fas fa-heart mr-2"></i>Watchlist
-              </a>
-              <div class="border-t border-gray-200"></div>
-              <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                <i class="fas fa-sign-out-alt mr-2"></i>Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
       
-      authSection.innerHTML = userMenuHTML;
+      // Hide auth buttons, show user menu
+      authButtons.classList.add('hidden');
+      userMenu.classList.remove('hidden');
+      userMenu.classList.add('flex');
       
-      // Mobile auth section
+      // Update user display
+      const userInitials = document.getElementById('user-initials');
+      const userNameDisplay = document.getElementById('user-name-display');
+      
+      if (userInitials) {
+        userInitials.textContent = user.firstName ? user.firstName.charAt(0) : 'U';
+      }
+      if (userNameDisplay) {
+        userNameDisplay.textContent = user.firstName || 'User';
+      }
+      
+      // Update mobile auth section
       mobileAuthSection.innerHTML = `
         <div class="flex flex-col space-y-3 pt-2 border-t border-gray-200">
+          <div class="flex items-center space-x-2 px-4 py-2 bg-gray-50 rounded-lg">
+            <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+              ${user.firstName ? user.firstName.charAt(0) : 'U'}
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-900">${user.firstName || ''} ${user.lastName || ''}</p>
+              <p class="text-xs text-gray-500">${user.email || ''}</p>
+            </div>
+          </div>
           <a href="profile.html" class="text-gray-700 hover:text-primary-600 font-medium py-2">
-            <i class="fas fa-user mr-2"></i>My Profile
+            <i class="fas fa-user mr-2"></i>Profile
           </a>
           <a href="dashboard.html" class="text-gray-700 hover:text-primary-600 font-medium py-2">
             <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+          </a>
+          <a href="products.html?filter=my-bids" class="text-gray-700 hover:text-primary-600 font-medium py-2">
+            <i class="fas fa-gavel mr-2"></i>My Bids
+          </a>
+          <a href="products.html?filter=watchlist" class="text-gray-700 hover:text-primary-600 font-medium py-2">
+            <i class="fas fa-heart mr-2"></i>Favorites
+          </a>
+          <a href="#" class="text-gray-700 hover:text-primary-600 font-medium py-2">
+            <i class="fas fa-cog mr-2"></i>Settings
           </a>
           <button id="mobile-logout-btn" class="text-left text-red-600 hover:text-red-700 font-medium py-2">
             <i class="fas fa-sign-out-alt mr-2"></i>Logout
@@ -103,73 +84,60 @@ class HeaderManager {
         </div>
       `;
       
-      // Show dashboard button in hero section, hide register button
-      if (dashboardHeroBtn) {
-        dashboardHeroBtn.classList.remove('hidden');
-      }
-      if (registerHeroBtn) {
-        registerHeroBtn.textContent = 'Start Selling';
-        registerHeroBtn.href = 'sell-product.html';
-      }
-      
-      // Bind user menu events
-      this.bindUserMenuEvents();
+      // Trigger notification system initialization
+      setTimeout(() => {
+        if (window.notificationSystem) {
+          window.notificationSystem.init();
+        } else if (window.initNotifications) {
+          window.initNotifications();
+        }
+      }, 100);
       
     } else {
-      // User is not logged in - show login/register buttons
-      authSection.innerHTML = `
-        <div class="flex items-center space-x-4">
-          <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
-          <a href="sell-product.html" class="sell-your-product_Navbar">
-            <span class="sell-your-product_Navbar-text-container">
-              <span class="sell-your-product_Navbar-text">Sell Product</span>
-            </span>
-          </a>
-        </div>
-      `;
+      // Show auth buttons, hide user menu
+      authButtons.classList.remove('hidden');
+      authButtons.classList.add('flex');
+      userMenu.classList.add('hidden');
+      userMenu.classList.remove('flex');
       
+      // Update mobile auth section
       mobileAuthSection.innerHTML = `
         <div class="flex space-x-4 pt-2 border-t border-gray-200">
           <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
           <a href="register.html" class="bg-primary-600 text-white px-4 py-2 rounded-full hover:bg-primary-700 transition duration-300">Register</a>
         </div>
       `;
-      
-      // Hide dashboard button in hero section, show register button
-      if (dashboardHeroBtn) {
-        dashboardHeroBtn.classList.add('hidden');
-      }
-      if (registerHeroBtn) {
-        registerHeroBtn.textContent = 'Start Bidding';
-        registerHeroBtn.href = 'register.html';
-      }
     }
+    
+    this.bindUserMenuEvents();
   }
 
-  // Bind user menu events
   bindUserMenuEvents() {
-    const userMenuButton = document.getElementById('user-menu-button');
-    const userDropdown = document.getElementById('user-dropdown');
-    const logoutBtn = document.getElementById('logout-btn');
-    const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
-
-    // Toggle dropdown
-    if (userMenuButton && userDropdown) {
-      userMenuButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        userDropdown.classList.toggle('hidden');
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener('click', (e) => {
-        if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
-          userDropdown.classList.add('hidden');
-        }
-      });
+    // User dropdown toggle
+    const userDropdown = document.querySelector('#user-menu .relative.group');
+    if (userDropdown) {
+      const button = userDropdown.querySelector('button');
+      const menu = userDropdown.querySelector('.absolute');
+      
+      if (button && menu) {
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
+          menu.classList.toggle('opacity-0');
+          menu.classList.toggle('invisible');
+        });
+        
+        document.addEventListener('click', (e) => {
+          if (!userDropdown.contains(e.target)) {
+            menu.classList.add('opacity-0');
+            menu.classList.add('invisible');
+          }
+        });
+      }
     }
 
-    // Handle logout
-    [logoutBtn, mobileLogoutBtn].forEach(btn => {
+    // Logout handlers
+    const logoutBtns = document.querySelectorAll('#logout-btn, #mobile-logout-btn');
+    logoutBtns.forEach(btn => {
       if (btn) {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
@@ -179,11 +147,19 @@ class HeaderManager {
         });
       }
     });
-
-    // Dashboard and other links are now proper href links, no need for click handlers
   }
 
   renderHeader() {
+    const headerContainer = document.getElementById('header-container') || document.querySelector('header');
+    
+    if (!headerContainer) {
+      // Create header container if it doesn't exist
+      const headerDiv = document.createElement('div');
+      headerDiv.id = 'header-container';
+      document.body.insertBefore(headerDiv, document.body.firstChild);
+      headerContainer = headerDiv;
+    }
+
     const headerHTML = `
       <!-- Header -->
       <header class="bg-white shadow-md sticky top-0 z-10">
@@ -201,105 +177,100 @@ class HeaderManager {
             <div class="hidden md:flex items-center space-x-6">
               <!-- Nav Links -->
               <nav class="flex items-center space-x-6">
-                <a
-                  href="index.html"
-                  class="text-gray-700 hover:text-primary-600 font-medium"
-                  >Home</a
-                >
+                <a href="index.html" class="text-gray-700 hover:text-primary-600 font-medium">Home</a>
+                
                 <!-- Products Dropdown -->
                 <div class="dropdown relative">
-                  <button
-                    class="flex items-center text-gray-700 hover:text-primary-600 font-medium"
-                  >
+                  <button class="flex items-center text-gray-700 hover:text-primary-600 font-medium">
                     Products <i class="fas fa-chevron-down ml-1 text-xs"></i>
                   </button>
-                  <div
-                    class="dropdown-menu absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block z-50"
-                  >
+                  <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block z-50">
                     <div class="py-1">
-                      <a
-                        href="products.html?category=computers"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                        >Computers</a
-                      >
-                      <a
-                        href="products.html?category=antiques"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                        >Antiques</a
-                      >
-                      <a
-                        href="products.html?category=dvd"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                        >DVD</a
-                      >
-                      <a
-                        href="products.html?category=retro-games"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                        >Retro Games</a
-                      >
-                      <a
-                        href="products.html?category=phones"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                        >Phones</a
-                      >
-                      <a
-                        href="products.html?category=art"
-                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                        >Art</a
-                      >
+                      <a href="products.html?category=computers" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Computers</a>
+                      <a href="products.html?category=antiques" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Antiques</a>
+                      <a href="products.html?category=dvd" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">DVD</a>
+                      <a href="products.html?category=retro-games" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Retro Games</a>
+                      <a href="products.html?category=phones" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Phones</a>
+                      <a href="products.html?category=art" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Art</a>
                     </div>
                   </div>
                 </div>
-                <a
-                  href="how-it-works.html"
-                  class="text-gray-700 hover:text-primary-600 font-medium"
-                  >How It Works</a
-                >
-                <a
-                  href="about.html"
-                  class="text-gray-700 hover:text-primary-600 font-medium"
-                  >About</a
-                >
-                <a
-                  href="contact.html"
-                  class="text-gray-700 hover:text-primary-600 font-medium"
-                  >Contact</a
-                >
+                
+                <a href="how-it-works.html" class="text-gray-700 hover:text-primary-600 font-medium">How It Works</a>
+                <a href="about.html" class="text-gray-700 hover:text-primary-600 font-medium">About</a>
+                <a href="contact.html" class="text-gray-700 hover:text-primary-600 font-medium">Contact</a>
               </nav>
 
               <!-- Search -->
               <div class="relative group pr-4">
                 <button class="p-2 focus:outline-none">
-                  <i
-                    class="fas fa-search text-gray-500 group-hover:text-primary-600 transition-colors duration-300"
-                  ></i>
+                  <i class="fas fa-search text-gray-500 group-hover:text-primary-600 transition-colors duration-300"></i>
                 </button>
-                <input
-                  type="text"
-                  placeholder="Search auctions..."
-                  class="absolute left-0 top-1/2 transform -translate-y-1/2 w-0 opacity-0 group-hover:opacity-100 group-hover:w-48 focus:opacity-100 focus:w-48 transition-all duration-300 ease-out rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent px-4 py-2"
-                />
+                <input type="text" placeholder="Search auctions..." 
+                       class="absolute left-0 top-1/2 transform -translate-y-1/2 w-0 opacity-0 group-hover:opacity-100 group-hover:w-48 focus:opacity-100 focus:w-48 transition-all duration-300 ease-out rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent px-4 py-2" />
               </div>
             </div>
 
             <!-- Auth Buttons -->
-            <div id="auth-section" class="hidden md:flex items-center space-x-4">
-              <!-- Will be populated by updateAuthSection() -->
-              <div class="flex items-center space-x-4">
+            <div class="hidden md:flex items-center space-x-4">
+              <!-- When NOT authenticated -->
+              <div id="auth-buttons" class="flex items-center space-x-4">
                 <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
-              <a href="sell-product.html" class="sell-your-product_Navbar">
-                <span class="sell-your-product_Navbar-text-container">
-                  <span class="sell-your-product_Navbar-text">Sell Product</span>
-                </span>
-              </a>
+                <a href="sell-product.html" class="sell-your-product_Navbar">
+                  <span class="sell-your-product_Navbar-text-container">
+                    <span class="sell-your-product_Navbar-text">Sell Product</span>
+                  </span>
+                </a>
+              </div>
+
+              <!-- When authenticated -->
+              <div id="user-menu" class="hidden items-center space-x-4">
+                <a href="sell-product.html" class="sell-your-product_Navbar">
+                  <span class="sell-your-product_Navbar-text-container">
+                    <span class="sell-your-product_Navbar-text">Sell Product</span>
+                  </span>
+                </a>
+                
+                <!-- User Dropdown -->
+                <div class="relative group">
+                  <button class="flex items-center space-x-2 text-gray-700 hover:text-primary-600 font-medium">
+                    <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                      <span id="user-initials">U</span>
+                    </div>
+                    <span id="user-name-display">User</span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                  </button>
+                  
+                  <!-- Dropdown Menu -->
+                  <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div class="py-1">
+                      <a href="profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                        <i class="fas fa-user mr-2"></i>Profile
+                      </a>
+                      <a href="dashboard.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                      </a>
+                      <a href="products.html?filter=my-bids" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                        <i class="fas fa-gavel mr-2"></i>My Bids
+                      </a>
+                      <a href="products.html?filter=watchlist" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                        <i class="fas fa-heart mr-2"></i>Favorites
+                      </a>
+                      <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">
+                        <i class="fas fa-cog mr-2"></i>Settings
+                      </a>
+                      <hr class="my-1">
+                      <button id="logout-btn" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
             <!-- Mobile Menu Button -->
-            <button
-              id="mobile-menu-button"
-              class="md:hidden text-gray-700 focus:outline-none"
-            >
+            <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
               <i class="fas fa-bars text-2xl"></i>
             </button>
           </div>
@@ -307,15 +278,9 @@ class HeaderManager {
           <!-- Mobile Search -->
           <div class="md:hidden pb-4">
             <form class="relative">
-              <input
-                type="text"
-                placeholder="Search for auctions..."
-                class="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <button
-                type="submit"
-                class="absolute right-0 top-0 mt-2 mr-4 text-gray-500 hover:text-primary-600"
-              >
+              <input type="text" placeholder="Search for auctions..." 
+                     class="w-full py-2 pl-4 pr-10 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent" />
+              <button type="submit" class="absolute right-0 top-0 mt-2 mr-4 text-gray-500 hover:text-primary-600">
                 <i class="fas fa-search"></i>
               </button>
             </form>
@@ -323,94 +288,43 @@ class HeaderManager {
         </div>
 
         <!-- Mobile Menu -->
-        <div
-          class="md:hidden fixed inset-y-0 left-0 w-64 bg-white transform -translate-x-full transition-transform duration-300 ease-in-out z-40 pt-16"
-          id="mobile-menu"
-        >
+        <div class="md:hidden fixed inset-y-0 left-0 w-64 bg-white transform -translate-x-full transition-transform duration-300 ease-in-out z-40 pt-16" id="mobile-menu">
           <div class="container mx-auto px-4 py-2">
             <nav class="flex flex-col space-y-3 py-3">
-              <a
-                href="index.html"
-                class="text-gray-700 hover:text-primary-600 font-medium py-2"
-                >Home</a
-              >
+              <a href="index.html" class="text-gray-700 hover:text-primary-600 font-medium py-2">Home</a>
+              
               <div class="relative">
-                <button
-                  class="flex justify-between w-full text-gray-700 hover:text-primary-600 font-medium mobile-dropdown-button py-2"
-                >
+                <button class="flex justify-between w-full text-gray-700 hover:text-primary-600 font-medium mobile-dropdown-button py-2">
                   Products <i class="fas fa-chevron-down text-xs"></i>
                 </button>
-                <div
-                  class="hidden bg-gray-50 rounded-md mt-1 py-2 mobile-dropdown-menu"
-                >
-                  <a
-                    href="products.html?category=computers"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                    >Computers</a
-                  >
-                  <a
-                    href="products.html?category=antiques"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                    >Antiques</a
-                  >
-                  <a
-                    href="products.html?category=dvd"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                    >DVD</a
-                  >
-                  <a
-                    href="products.html?category=retro-games"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                    >Retro Games</a
-                  >
-                  <a
-                    href="products.html?category=phones"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                    >Phones</a
-                  >
-                  <a
-                    href="products.html?category=art"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600"
-                    >Art</a
-                  >
+                <div class="hidden bg-gray-50 rounded-md mt-1 py-2 mobile-dropdown-menu">
+                  <a href="products.html?category=computers" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Computers</a>
+                  <a href="products.html?category=antiques" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Antiques</a>
+                  <a href="products.html?category=dvd" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">DVD</a>
+                  <a href="products.html?category=retro-games" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Retro Games</a>
+                  <a href="products.html?category=phones" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Phones</a>
+                  <a href="products.html?category=art" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Art</a>
                 </div>
               </div>
-              <a
-                href="how-it-works.html"
-                class="text-gray-700 hover:text-primary-600 font-medium py-2"
-                >How It Works</a
-              >
-              <a
-                href="about.html"
-                class="text-gray-700 hover:text-primary-600 font-medium py-2"
-                >About</a
-              >
-              <a
-                href="contact.html"
-                class="text-gray-700 hover:text-primary-600 font-medium py-2"
-                >Contact</a
-              >
-              <div id="mobile-auth-section">
-                <!-- Will be populated by updateAuthSection() -->
-                <div class="flex space-x-4 pt-2 border-t border-gray-200">
-                  <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
-                  <a href="register.html" class="bg-primary-600 text-white px-4 py-2 rounded-full hover:bg-primary-700 transition duration-300">Register</a>
-                </div>
-              </div>
+              
+              <a href="how-it-works.html" class="text-gray-700 hover:text-primary-600 font-medium py-2">How It Works</a>
+              <a href="about.html" class="text-gray-700 hover:text-primary-600 font-medium py-2">About</a>
+              <a href="contact.html" class="text-gray-700 hover:text-primary-600 font-medium py-2">Contact</a>
             </nav>
+
+            <!-- Mobile Auth Section -->
+            <div id="mobile-auth-section">
+              <div class="flex space-x-4 pt-2 border-t border-gray-200">
+                <a href="login.html" class="text-gray-700 hover:text-primary-600 font-medium">Login</a>
+                <a href="register.html" class="bg-primary-600 text-white px-4 py-2 rounded-full hover:bg-primary-700 transition duration-300">Register</a>
+              </div>
+            </div>
           </div>
         </div>
       </header>
     `;
 
-    // Insert header at the beginning of body
-    const headerContainer = document.getElementById('header-container');
-    if (headerContainer) {
-      headerContainer.innerHTML = headerHTML;
-    } else {
-      // If no container, insert after body opening
-      document.body.insertAdjacentHTML('afterbegin', headerHTML);
-    }
+    headerContainer.innerHTML = headerHTML;
   }
 
   bindHeaderEvents() {
@@ -425,13 +339,13 @@ class HeaderManager {
 
       // Close mobile menu when clicking outside
       document.addEventListener('click', (e) => {
-        if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+        if (!mobileMenuButton.contains(e.target) && !mobileMenu.contains(e.target)) {
           mobileMenu.classList.add('-translate-x-full');
         }
       });
     }
 
-    // Mobile dropdown functionality
+    // Mobile dropdown toggles
     const mobileDropdownButtons = document.querySelectorAll('.mobile-dropdown-button');
     mobileDropdownButtons.forEach(button => {
       button.addEventListener('click', () => {
@@ -442,23 +356,26 @@ class HeaderManager {
       });
     });
 
-    // Desktop dropdown functionality
+    // Desktop dropdown hovers
     const dropdowns = document.querySelectorAll('.dropdown');
     dropdowns.forEach(dropdown => {
       const menu = dropdown.querySelector('.dropdown-menu');
-      
-      dropdown.addEventListener('mouseenter', () => {
-        if (menu) menu.classList.remove('hidden');
-      });
-      
-      dropdown.addEventListener('mouseleave', () => {
-        if (menu) menu.classList.add('hidden');
-      });
+      if (menu) {
+        dropdown.addEventListener('mouseenter', () => {
+          menu.classList.remove('hidden');
+        });
+        dropdown.addEventListener('mouseleave', () => {
+          menu.classList.add('hidden');
+        });
+      }
     });
   }
 }
 
-// Initialize header manager
-if (!window.headerManager) {
+// Initialize header when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
   window.headerManager = new HeaderManager();
-} 
+});
+
+// Export for use in other scripts
+window.HeaderManager = HeaderManager; 

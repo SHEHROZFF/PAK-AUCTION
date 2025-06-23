@@ -70,6 +70,7 @@ export function PaymentTab() {
     { code: 'JPY', name: 'Japanese Yen' },
     { code: 'CAD', name: 'Canadian Dollar' },
     { code: 'AUD', name: 'Australian Dollar' },
+    { code: 'PKR', name: 'Pakistani Rupee' },
   ];
 
   return (

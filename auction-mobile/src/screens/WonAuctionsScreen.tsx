@@ -17,6 +17,7 @@ import { scale, verticalScale, scaleFont } from '../utils/responsive';
 import PatternBackground from '../components/common/PatternBackground';
 import { getFullImageUrl } from '../constants/api';
 import { UserWonAuction } from '../store/slices/userSlice';
+import { formatCurrency } from '../utils/formatCurrency';
 
 interface WonAuctionsScreenProps {
   navigation: any;
@@ -80,7 +81,7 @@ const WonAuctionsScreen: React.FC<WonAuctionsScreenProps> = ({ navigation }) => 
 
           <View style={styles.auctionMeta}>
             <View style={styles.categoryRow}>
-              <Ionicons name="pricetag-outline" size={scale(14)} color={THEME_COLORS.gray[500]} />
+              <Ionicons name="pricetag-outline" size={scale(14)} color={THEME_COLORS.primary[600]} />
               <Text style={styles.categoryText}>
                 {(item.category && item.category.name) || 'General'}
               </Text>
@@ -97,10 +98,10 @@ const WonAuctionsScreen: React.FC<WonAuctionsScreenProps> = ({ navigation }) => 
             <View style={styles.priceInfo}>
               <Text style={styles.priceLabel}>Winning Bid</Text>
               <Text style={styles.winningBid}>
-                Rs. {(item.winningBid || item.currentBid || 0).toLocaleString()}
+                {formatCurrency(item.winningBid || item.currentBid || 0)}
               </Text>
               <Text style={styles.basePrice}>
-                Base: Rs. {(item.basePrice || 0).toLocaleString()}
+                Base: {formatCurrency(item.basePrice || 0)}
               </Text>
             </View>
             

@@ -8,11 +8,22 @@ class HomepageManager {
     // this.baseURL = 'http://localhost:5000/api';
     this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
     this.content = null;
+    this.settings = {
+      currency: 'PKR'
+    };
     this.init();
   }
 
   async init() {
     console.log('🏠 Initializing Homepage Dynamic Content...');
+    
+    // Wait for utility manager to be ready if available
+    if (window.utilityManager) {
+      await window.utilityManager.ready;
+      // Get currency settings from utility manager
+      this.settings.currency = window.utilityManager.settings.currency;
+    }
+    
     await this.loadContent();
   }
 
@@ -231,11 +242,7 @@ class HomepageManager {
       }
       
       if (bidElement) {
-        const formattedBid = new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: 0
-        }).format(auction.currentBid);
+        const formattedBid = this.formatCurrency(auction.currentBid);
         bidElement.textContent = `Current bid: ${formattedBid}`;
         bidElement.className = 'text-gray-600';
         console.log('✅ Current bid updated:', formattedBid);
@@ -653,6 +660,20 @@ class HomepageManager {
     }
 
     return stars;
+  }
+
+  // Format currency using utility manager
+  formatCurrency(amount) {
+    if (window.utilityManager) {
+      return window.utilityManager.formatCurrency(amount);
+    }
+    
+    // Fallback if utility manager is not available
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: this.settings?.currency || 'PKR',
+      minimumFractionDigits: 0
+    }).format(amount);
   }
 }
 

@@ -832,6 +832,37 @@ const verifyPasswordResetOTP = async (req, res) => {
   }
 };
 
+// Register push token
+const registerPushToken = async (req, res) => {
+  try {
+    const { pushToken } = req.body;
+    const userId = req.user.id;
+
+    if (!pushToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Push token is required'
+      });
+    }
+
+    // Add push token to user's tokens array (if not already exists)
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { pushTokens: pushToken }
+    });
+
+    res.json({
+      success: true,
+      message: 'Push token registered successfully'
+    });
+  } catch (error) {
+    console.error('Register push token error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during push token registration'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -848,5 +879,7 @@ module.exports = {
   verifyOTP,
   forgotPasswordOTP,
   resetPasswordOTP,
-  verifyPasswordResetOTP
+  verifyPasswordResetOTP,
+  // Push notification functions
+  registerPushToken
 }; 

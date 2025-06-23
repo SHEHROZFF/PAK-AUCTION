@@ -21,6 +21,7 @@ import {
   ArcElement,
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
+import { formatCurrency, useCurrencyFormatter } from '../../utils/formatters';
 
 ChartJS.register(
   CategoryScale,
@@ -43,6 +44,9 @@ export function DashboardTab() {
     endingSoonAuctions,
     isLoading
   } = useAppSelector((state) => state.dashboard);
+
+  // Use our currency formatter hook
+  const formatCurrencyValue = useCurrencyFormatter();
 
   useEffect(() => {
     // Fetch all dashboard data
@@ -187,7 +191,7 @@ export function DashboardTab() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-500 text-sm font-medium">Total Revenue</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">${currentStats.totalRevenue.toLocaleString()}</p>
+                <p className="text-3xl font-bold text-gray-800 mt-1">{formatCurrencyValue(currentStats.totalRevenue)}</p>
                 <div className="flex items-center mt-2">
                   <span className="text-green-500 text-sm font-medium">
                     <i className="fas fa-arrow-up mr-1 text-green-500"></i>
@@ -299,7 +303,7 @@ export function DashboardTab() {
                       {auction.title}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Current: ${auction.currentBid.toLocaleString()}
+                      Current: {formatCurrencyValue(auction.currentBid)}
                     </p>
                     <p className="text-xs text-red-600">{auction.timeLeft} left</p>
                   </div>

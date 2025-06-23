@@ -97,7 +97,7 @@ class PaymentManager {
               <h5 class="font-medium text-gray-800 mb-1">${auctionTitle}</h5>
               <div class="flex justify-between items-center">
                 <span class="text-gray-600">Entry Fee (10%):</span>
-                <span class="font-bold text-lg text-primary-600">$${Number(entryFee).toLocaleString()}</span>
+                <span class="font-bold text-lg text-primary-600">${this.formatCurrency(entryFee)}</span>
               </div>
             </div>
           </div>
@@ -131,7 +131,7 @@ class PaymentManager {
               id="payment-submit-btn"
               class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition duration-300"
             >
-              <span id="payment-btn-text">Pay $${Number(entryFee).toLocaleString()}</span>
+              <span id="payment-btn-text">Pay ${this.formatCurrency(entryFee)}</span>
               <i id="payment-loading" class="fas fa-spinner fa-spin ml-2 hidden"></i>
             </button>
           </form>
@@ -572,6 +572,17 @@ class PaymentManager {
     document.body.appendChild(notification);
     
     setTimeout(() => notification.remove(), 5000);
+  }
+
+  // Format currency using utility manager
+  formatCurrency(amount) {
+    // Use the utility manager if available, otherwise fallback to default formatting
+    if (window.utilityManager) {
+      return window.utilityManager.formatCurrency(amount);
+    }
+    
+    // Fallback formatting
+    return 'Rs. ' + Number(amount).toLocaleString();
   }
 }
 

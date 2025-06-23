@@ -13,15 +13,30 @@ class IndexManager {
   }
 
   async init() {
-    console.log('🚀 Initializing Homepage...');
+    console.log('🚀 Initializing Index Page...');
     
-    // Run diagnostics first
+    // Run diagnostics
     await this.runDiagnostics();
     
+    try {
+      // Show loading state
+      this.showLoading();
+      
+      // Load featured auctions and categories
     await Promise.all([
       this.loadFeaturedAuctions(),
       this.loadCategories()
     ]);
+
+      // Update any static currency values on the page
+      this.updateStaticCurrencyValues();
+      
+      // Hide loading state
+      this.hideLoading();
+    } catch (error) {
+      console.error('❌ Error initializing index page:', error);
+      this.showEmpty();
+    }
   }
 
   async runDiagnostics() {
@@ -270,7 +285,7 @@ class IndexManager {
           <div class="flex items-center justify-between mb-4">
             <div>
               <p class="text-xs text-gray-500 uppercase tracking-wide">Current Bid</p>
-              <p class="font-bold text-2xl text-primary-600">$${Number(currentBid).toLocaleString()}</p>
+              <p class="font-bold text-2xl text-primary-600">${this.formatCurrency(currentBid)}</p>
             </div>
             <div class="text-right">
               <p class="text-xs text-gray-500 uppercase tracking-wide">Bids</p>
@@ -389,6 +404,37 @@ class IndexManager {
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
+  }
+  
+  // Format currency using utility manager
+  formatCurrency(amount) {
+    // Use the utility manager if available, otherwise fallback to default formatting
+    if (window.utilityManager) {
+      return window.utilityManager.formatCurrency(amount);
+    }
+    
+    // Fallback formatting
+    return 'Rs. ' + Number(amount).toLocaleString();
+  }
+
+  updateStaticCurrencyValues() {
+    // Find all elements with the currency-value class and update them
+    const currencyElements = document.querySelectorAll('.currency-value');
+    
+    currencyElements.forEach(element => {
+      // Get the current text content which should be in the format "Rs. 1,250"
+      const currentText = element.textContent;
+      // Extract the number part
+      const numberMatch = currentText.match(/[\d,]+/);
+      
+      if (numberMatch) {
+        const number = parseFloat(numberMatch[0].replace(/,/g, ''));
+        // Format with the utility manager
+        if (window.utilityManager) {
+          element.textContent = window.utilityManager.formatCurrency(number);
+        }
+      }
+    });
   }
 }
 

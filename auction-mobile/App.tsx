@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { Provider } from 'react-redux';
@@ -7,6 +7,8 @@ import Toast from 'react-native-toast-message';
 import { store } from './src/store';
 import { useAppDispatch, useAppSelector } from './src/store';
 import { loadStoredAuth } from './src/store/slices/authSlice';
+import { fetchSettings } from './src/store/slices/settingsSlice';
+import { pushNotificationService } from './src/services/pushNotificationService';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
 
@@ -28,19 +30,49 @@ const ErrorScreen: React.FC<{ error?: string }> = ({ error }) => (
 const AppContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated, isAppLoading, error } = useAppSelector((state) => state.auth);
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
   useEffect(() => {
-    // Load stored authentication data on app start with error handling
-    const loadAuth = async () => {
+    // Load stored authentication data and settings on app start
+    const loadInitialData = async () => {
       try {
+        // Load settings first
+        await dispatch(fetchSettings());
+        setIsSettingsLoaded(true);
+        
+        // Then load auth data
         await dispatch(loadStoredAuth());
       } catch (error) {
-        console.log('Auth loading failed, continuing to app:', error);
+        console.log('Initial data loading failed:', error);
+        setIsSettingsLoaded(true); // Continue with app even if settings fail
       }
     };
     
-    loadAuth();
+    loadInitialData();
   }, [dispatch]);
+
+  // Initialize push notifications when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('🔔 Initializing push notifications...');
+      pushNotificationService.initialize().then((token) => {
+        if (token) {
+          console.log('✅ Push notifications initialized with token:', token);
+        }
+      }).catch((error) => {
+        console.error('❌ Failed to initialize push notifications:', error);
+      });
+      
+      // Setup notification listeners
+      const listeners = pushNotificationService.setupNotificationListeners();
+      
+      // Cleanup listeners on unmount
+      return () => {
+        listeners.notificationListener.remove();
+        listeners.responseListener.remove();
+      };
+    }
+  }, [isAuthenticated]);
 
   // Show error screen if there's a critical error
   if (error && !isAppLoading) {
@@ -48,7 +80,7 @@ const AppContent: React.FC = () => {
   }
 
   // Show loading screen
-  if (isAppLoading) {
+  if (isAppLoading || !isSettingsLoaded) {
     return <LoadingScreen />;
   }
 

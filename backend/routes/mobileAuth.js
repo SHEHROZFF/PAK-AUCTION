@@ -5,13 +5,15 @@ const {
   verifyOTP,
   forgotPasswordOTP,
   resetPasswordOTP,
-  verifyPasswordResetOTP
+  verifyPasswordResetOTP,
+  registerPushToken
 } = require('../controllers/authController');
 const { 
   validateEmail, 
   validateOTP, 
   validatePasswordResetOTP 
 } = require('../middleware/validation');
+const { verifyToken } = require('../middleware/auth');
 
 // Send OTP for email verification (resend)
 router.post('/send-otp', validateEmail, sendOTP);
@@ -27,5 +29,8 @@ router.post('/verify-password-reset-otp', validateOTP, verifyPasswordResetOTP);
 
 // Reset password with OTP
 router.post('/reset-password-otp', validatePasswordResetOTP, resetPasswordOTP);
+
+// Register push token (protected route)
+router.post('/register-push-token', verifyToken, registerPushToken);
 
 module.exports = router; 

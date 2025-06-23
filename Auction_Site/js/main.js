@@ -77,8 +77,8 @@ function loadProducts() {
           <h3 class="font-semibold text-lg">${p.title}</h3>
           <p class="text-sm text-gray-500 capitalize">${p.category}</p>
           <div class="flex justify-between items-center">
-            <span class="text-indigo-600 font-bold">$${p.currentBid}</span>
-            <span class="text-xs text-gray-400">Base: $${p.basePrice}</span>
+            <span class="text-indigo-600 font-bold">${formatCurrency(p.currentBid)}</span>
+            <span class="text-xs text-gray-400">Base: ${formatCurrency(p.basePrice)}</span>
           </div>
         </div>
       </a>
@@ -86,6 +86,17 @@ function loadProducts() {
   `
     )
     .join("");
+}
+
+// Format currency using utility manager
+function formatCurrency(amount) {
+  // Use the utility manager if available, otherwise fallback to default formatting
+  if (window.utilityManager) {
+    return window.utilityManager.formatCurrency(amount);
+  }
+  
+  // Fallback formatting
+  return 'Rs. ' + Number(amount).toLocaleString();
 }
 
 // ---- Product detail rendering ----
@@ -110,20 +121,14 @@ function renderProductDetail() {
         <h1 class="text-3xl font-bold mb-2">${product.title}</h1>
         <p class="text-gray-500 mb-4 capitalize">${product.category}</p>
         <div class="mb-4">
-          <span class="text-2xl font-bold text-indigo-600">$${
-            product.currentBid
-          }</span>
-          <span class="text-sm text-gray-400 ml-2">Base price: $${
-            product.basePrice
-          }</span>
+          <span class="text-2xl font-bold text-indigo-600">${formatCurrency(product.currentBid)}</span>
+          <span class="text-sm text-gray-400 ml-2">Base price: ${formatCurrency(product.basePrice)}</span>
         </div>
         <div id="actionArea" class="space-y-4">
           ${
             hasDeposit
               ? `<button id="bidBtn" class="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700">Bid Now</button>`
-              : `<button id="depositBtn" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Pay 10% Deposit ($${(
-                  product.basePrice * 0.1
-                ).toFixed(2)})</button>`
+              : `<button id="depositBtn" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Pay 10% Deposit (${formatCurrency(product.basePrice * 0.1)})</button>`
           }
         </div>
         <div class="mt-8">
@@ -132,7 +137,7 @@ function renderProductDetail() {
             ${
               bids.length
                 ? bids
-                    .map((b) => `<li>${b.name} bid $${b.amount}</li>`)
+                    .map((b) => `<li>${b.name} bid ${formatCurrency(b.amount)}</li>`)
                     .join("")
                 : "<li>No bids yet. Be the first one to bid.</li>"
             }

@@ -25,6 +25,7 @@ import PatternBackground from '../components/common/PatternBackground';
 import ProductDetailSkeleton from '../components/skeletons/ProductDetailSkeleton';
 import Toast from 'react-native-toast-message';
 import { RootState } from '../store';
+import { formatCurrency, getCurrencySymbol } from '../utils/formatCurrency';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -148,6 +149,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
   const [loadingBids, setLoadingBids] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const auctionId = route?.params?.id;
 
@@ -291,16 +293,17 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
   };
 
   const handleBid = async () => {
-    if (!auctionId || !bidAmount) {
+    if (!bidAmount || parseFloat(bidAmount) <= 0) {
       Toast.show({
         type: 'error',
-        text1: 'Invalid Bid',
-        text2: 'Please enter a bid amount',
-        position: 'top',
+        text1: 'Invalid Bid Amount',
+        text2: 'Please enter a valid bid amount',
+        position: 'bottom'
       });
       return;
     }
     
+    // Check if bid is at least the minimum amount
     const amount = parseFloat(bidAmount);
     const minBid = userBidStatus?.minBidAmount || currentAuction?.basePrice || 0;
     
@@ -308,38 +311,51 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
       Toast.show({
         type: 'error',
         text1: 'Bid Too Low',
-        text2: `Minimum bid amount is $${minBid}`,
-        position: 'top',
+        text2: `Minimum bid amount is ${formatCurrency(minBid)}`,
+        position: 'bottom'
       });
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      await dispatch(placeBid({ auctionId, amount })).unwrap();
-      setBidAmount('');
+      const { apiService } = await import('../services/api');
+      const response = await apiService.placeBid(auctionId, amount);
       
+      if (response.success) {
       Toast.show({
         type: 'success',
-        text1: '🎉 Bid Placed Successfully!',
-        text2: `Your bid of $${amount} has been placed`,
-        position: 'top',
-        visibilityTime: 4000,
+          text1: 'Bid Placed Successfully',
+          text2: `Your bid of ${formatCurrency(amount)} has been placed`,
+          position: 'bottom'
       });
       
-      // Refresh data
-      await Promise.all([
-        loadAuctionDetails(),
-        loadUserSpecificData(),
-        loadBidHistory()
-      ]);
-    } catch (error: any) {
+        // Refresh auction data and bid status
+        await loadAuctionDetails();
+        await loadUserBidStatus();
+        await loadBidHistory();
+        
+        // Clear bid amount
+        setBidAmount('');
+      } else {
       Toast.show({
         type: 'error',
         text1: 'Bid Failed',
-        text2: error.message || 'Failed to place bid. Please try again.',
-        position: 'top',
-        visibilityTime: 4000,
+          text2: response.message || 'Failed to place bid',
+          position: 'bottom'
+        });
+      }
+    } catch (error) {
+      console.error('Bid error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Bid Failed',
+        text2: 'An error occurred while placing your bid',
+        position: 'bottom'
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -348,7 +364,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
     
     Alert.alert(
       'Pay Entry Fee',
-      `You need to pay an entry fee of $${currentAuction.entryFee} to participate in this auction.`,
+      `You need to pay an entry fee of ${formatCurrency(currentAuction.entryFee)} to participate in this auction.`,
       [
         { text: 'Cancel', style: 'cancel' },
         { 
@@ -485,7 +501,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
             isTopBid && styles.topBidAmount,
             item.isWinning && styles.winningBidAmount
           ]}>
-            ${item.amount.toLocaleString()}
+            {formatCurrency(item.amount)}
           </Text>
           {isTopBid && (
             <Text style={styles.highestBidLabel}>Highest Bid</Text>
@@ -564,7 +580,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
             <View style={styles.infoContent}>
               <Text style={styles.infoTitle}>Pay Entry Fee to Bid</Text>
               <Text style={styles.infoText}>
-                To participate in this auction, you need to pay an entry fee of ${currentAuction?.entryFee}.
+                To participate in this auction, you need to pay an entry fee of {formatCurrency(currentAuction?.entryFee || 0)}.
               </Text>
             </View>
           </View>
@@ -574,7 +590,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
             activeOpacity={0.8}
           >
             <Ionicons name="card" size={scale(20)} color="white" />
-            <Text style={styles.buttonText}>Pay Entry Fee (${currentAuction?.entryFee})</Text>
+            <Text style={styles.buttonText}>Pay Entry Fee ({formatCurrency(currentAuction?.entryFee || 0)})</Text>
           </TouchableOpacity>
         </View>
       );
@@ -604,10 +620,10 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
             </View>
           </View>
           <Text style={styles.currentBidAmount}>
-            ${currentAuction?.currentBid || currentAuction?.basePrice || 0}
+            {formatCurrency(currentAuction?.currentBid || currentAuction?.basePrice || 0)}
           </Text>
           <Text style={styles.minBidInfo}>
-            Minimum next bid: ${userBidStatus?.minBidAmount || currentAuction?.basePrice || 0}
+            Minimum next bid: {formatCurrency(userBidStatus?.minBidAmount || currentAuction?.basePrice || 0)}
           </Text>
         </View>
 
@@ -616,7 +632,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
           <Text style={styles.bidInputLabel}>Enter Your Bid Amount</Text>
           <View style={styles.bidInputWrapper}>
             <View style={styles.currencySymbol}>
-              <Text style={styles.currencyText}>$</Text>
+              <Text style={styles.currencyText}>{getCurrencySymbol()}</Text>
             </View>
             <TextInput
               style={styles.bidInput}
@@ -664,7 +680,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
                   styles.quickBidButtonText,
                   bidAmount === amount.toString() && styles.quickBidButtonTextSelected
                 ]}>
-                  ${amount}
+                  {formatCurrency(amount)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -675,7 +691,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
         <View style={styles.bidInfoFooter}>
           <View style={styles.bidInfoItem}>
             <Ionicons name="trending-up" size={scale(16)} color={THEME_COLORS.gray[500]} />
-            <Text style={styles.bidInfoText}>Increment: ${currentAuction?.bidIncrement}</Text>
+            <Text style={styles.bidInfoText}>Increment: {formatCurrency(currentAuction?.bidIncrement || 0)}</Text>
           </View>
           <View style={styles.bidInfoItem}>
             <Ionicons name="time" size={scale(16)} color={THEME_COLORS.gray[500]} />
@@ -781,21 +797,21 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
             <View style={styles.priceRow}>
               <View>
                 <Text style={styles.priceLabel}>Current Bid</Text>
-                <Text style={styles.currentPrice}>${currentAuction.currentBid || currentAuction.basePrice}</Text>
+                <Text style={styles.currentPrice}>{formatCurrency(currentAuction.currentBid || currentAuction.basePrice)}</Text>
               </View>
               <View style={styles.priceRight}>
                 <Text style={styles.priceLabel}>Base Price</Text>
-                <Text style={styles.basePrice}>${currentAuction.basePrice}</Text>
+                <Text style={styles.basePrice}>{formatCurrency(currentAuction.basePrice)}</Text>
               </View>
             </View>
             <View style={styles.priceRow}>
               <View>
                 <Text style={styles.priceLabel}>Bid Increment</Text>
-                <Text style={styles.incrementPrice}>${currentAuction.bidIncrement}</Text>
+                <Text style={styles.incrementPrice}>{formatCurrency(currentAuction.bidIncrement)}</Text>
               </View>
               <View style={styles.priceRight}>
                 <Text style={styles.priceLabel}>Entry Fee</Text>
-                <Text style={styles.incrementPrice}>${currentAuction.entryFee}</Text>
+                <Text style={styles.incrementPrice}>{formatCurrency(currentAuction.entryFee)}</Text>
               </View>
             </View>
           </View>

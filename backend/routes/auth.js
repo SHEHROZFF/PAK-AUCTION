@@ -46,5 +46,6 @@ router.post('/reset-password', validateResetPassword, authController.resetPasswo
 router.post('/logout', verifyToken, authController.logout);
 router.post('/change-password', verifyToken, validateChangePassword, authController.changePassword);
 router.get('/profile', verifyToken, authController.getProfile);
+router.post('/register-push-token', verifyToken, authController.registerPushToken);
 
 module.exports = router; 

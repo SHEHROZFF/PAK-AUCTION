@@ -6,8 +6,10 @@
     <title>My Profile - PakAuction</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
+    <!-- Notification System -->
+
     <script>
         tailwind.config = {
             theme: {
@@ -15,20 +17,26 @@
                     colors: {
                         primary: {
                             50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
                             500: '#0ea5e9',
                             600: '#0284c7',
-                            700: '#0369a1'
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
                         }
                     },
                     fontFamily: {
-                        'sans': ['Inter', 'sans-serif']
+                        'sans': ['Poppins', 'sans-serif']
                     }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-gray-50 font-poppins">
     <!-- Loader -->
     <div id="loader" class="fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-700">
         <div class="text-center">
@@ -251,6 +259,7 @@
     <!-- Scripts -->
     <script src="js/header.js"></script>
     <script src="js/footer.js"></script>
+    <script src="js/utility.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/profile.js"></script>
 
@@ -266,5 +275,8 @@
             }, 1000);
         });
     </script>
-</body>
+
+    <!-- Notification System -->
+    <script src="js/notificationSystem.js"></script>
+  </body>
 </html> 

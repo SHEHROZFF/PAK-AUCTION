@@ -18,6 +18,9 @@ class AboutManager {
     console.log('🔧 FORCING: Using fallback content immediately...');
     this.useFallbackContent();
     
+    // Update currency formatting for monthly sales
+    this.updateCurrencyDisplay();
+    
     // Still try to load from API but don't wait for it
     this.loadContent().catch(error => {
       console.log('🔧 API failed as expected, already using fallback');
@@ -347,6 +350,15 @@ class AboutManager {
         notification.remove();
       }
     }, 5000);
+  }
+
+  updateCurrencyDisplay() {
+    // Update monthly sales display with proper currency formatting
+    const monthlySalesEl = document.getElementById('monthly-sales');
+    if (monthlySalesEl && window.utilityManager) {
+      // Format 10,000,000 with the proper currency symbol
+      monthlySalesEl.textContent = window.utilityManager.formatCurrency(10000000).replace(/\d+/, '10M+');
+    }
   }
 }
 

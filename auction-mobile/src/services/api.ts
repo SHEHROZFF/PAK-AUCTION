@@ -399,6 +399,24 @@ class ApiService {
     }
   }
 
+  async deleteNotification(id: string): Promise<ApiResponse> {
+    try {
+      const response = await this.api.delete<ApiResponse>(`/users/notifications/${id}`);
+      return this.handleResponse(response);
+    } catch (error) {
+      this.handleError(error as AxiosError);
+    }
+  }
+
+  async registerPushToken(pushToken: string): Promise<ApiResponse> {
+    try {
+      const response = await this.api.post<ApiResponse>('/mobile-auth/register-push-token', { pushToken });
+      return this.handleResponse(response);
+    } catch (error) {
+      this.handleError(error as AxiosError);
+    }
+  }
+
   // Profile update method
   async updateProfile(profileData: {
     firstName?: string;
@@ -453,7 +471,20 @@ class ApiService {
       this.handleError(error as AxiosError);
     }
   }
+
+  // Settings
+  async getSettings(): Promise<ApiResponse> {
+    try {
+      // Use the public settings endpoint that doesn't require authentication
+      const response = await this.api.get<ApiResponse>('/settings');
+      // console.log("settings response",response.data);
+      
+      return this.handleResponse(response);
+    } catch (error) {
+      this.handleError(error as AxiosError);
+    }
+  }
 }
 
-// Export singleton instance
+// Export as singleton
 export const apiService = new ApiService(); 

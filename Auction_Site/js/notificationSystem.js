@@ -8,7 +8,7 @@ class NotificationSystem {
     // this.baseURL = 'http://localhost:5000/api';
     this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
     // this.wsURL = 'ws://localhost:5000';
-    this.wsURL = 'ws://pak-auc-back.com.phpnode.net';
+    this.wsURL = 'wss://pak-auc-back.com.phpnode.net';
     
     this.socket = null;
     this.notifications = [];

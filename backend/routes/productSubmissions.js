@@ -4,6 +4,7 @@ const Auction = require('../models/Auction');
 const Category = require('../models/Category');
 const { verifyToken, requireAdmin, optionalAuth } = require('../middleware/auth');
 const { uploadAuctionImages, handleUploadError } = require('../middleware/upload');
+const whatsappService = require('../services/whatsappService');
 
 const router = express.Router();
 
@@ -130,6 +131,28 @@ router.post('/submit', optionalAuth, uploadAuctionImages, async (req, res) => {
     await submission.save();
 
     console.log('✅ Product submitted successfully:', submission._id);
+
+    // Send WhatsApp notification to admins
+    try {
+      console.log('📱 Sending WhatsApp notifications to admins...');
+      const whatsappResults = await whatsappService.notifyProductSubmission(submission);
+      
+      console.log('📱 WhatsApp notification results:', whatsappResults);
+      
+      // Log results for monitoring
+      const successCount = whatsappResults.filter(r => r.success).length;
+      const totalCount = whatsappResults.length;
+      
+      if (successCount > 0) {
+        console.log(`✅ WhatsApp notifications sent successfully to ${successCount}/${totalCount} admins`);
+      } else {
+        console.warn('⚠️ No WhatsApp notifications were sent successfully');
+      }
+      
+    } catch (whatsappError) {
+      // Don't fail the submission if WhatsApp fails
+      console.error('❌ WhatsApp notification error (non-critical):', whatsappError);
+    }
 
     res.status(201).json({
       success: true,
@@ -308,6 +331,8 @@ router.put('/admin/:id/status', verifyToken, requireAdmin, async (req, res) => {
       });
     }
 
+    const oldStatus = submission.status;
+    
     // Update status
     submission.status = status.toUpperCase();
     submission.adminNotes = adminNotes || '';
@@ -315,6 +340,28 @@ router.put('/admin/:id/status', verifyToken, requireAdmin, async (req, res) => {
     submission.reviewedAt = new Date();
 
     await submission.save();
+
+    // Send WhatsApp notification to seller if status changed
+    if (oldStatus !== submission.status) {
+      try {
+        console.log('📱 Sending WhatsApp status update notification to seller...');
+        const whatsappResult = await whatsappService.notifyStatusUpdate(
+          submission, 
+          submission.status, 
+          adminNotes || ''
+        );
+        
+        if (whatsappResult.success) {
+          console.log('✅ WhatsApp status update sent successfully to seller');
+        } else {
+          console.warn('⚠️ WhatsApp status update failed (non-critical):', whatsappResult.error);
+        }
+        
+      } catch (whatsappError) {
+        // Don't fail the status update if WhatsApp fails
+        console.error('❌ WhatsApp status notification error (non-critical):', whatsappError);
+      }
+    }
 
     // Populate the updated submission
     await submission.populate('reviewedBy', 'firstName lastName username');
@@ -416,6 +463,26 @@ router.post('/admin/:id/convert-to-auction', verifyToken, requireAdmin, async (r
     submission.adminNotes = `Converted to auction (ID: ${auction._id})`;
 
     await submission.save();
+
+    // Send WhatsApp notification to seller about conversion
+    try {
+      console.log('📱 Sending WhatsApp auction conversion notification to seller...');
+      const whatsappResult = await whatsappService.notifyStatusUpdate(
+        submission, 
+        'CONVERTED_TO_AUCTION', 
+        `Your product has been converted to auction #${auction._id}. Auction starts at ${auction.startTime.toLocaleString()} and ends at ${auction.endTime.toLocaleString()}.`
+      );
+      
+      if (whatsappResult.success) {
+        console.log('✅ WhatsApp auction conversion notification sent successfully to seller');
+      } else {
+        console.warn('⚠️ WhatsApp auction conversion notification failed (non-critical):', whatsappResult.error);
+      }
+      
+    } catch (whatsappError) {
+      // Don't fail the conversion if WhatsApp fails
+      console.error('❌ WhatsApp auction conversion notification error (non-critical):', whatsappError);
+    }
 
     res.json({
       success: true,

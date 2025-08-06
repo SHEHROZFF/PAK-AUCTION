@@ -21,6 +21,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, onClose }: SidebarPro
     { id: 'contact' as TabType, label: 'Contact Management', icon: 'fas fa-envelope' },
     { id: 'about' as TabType, label: 'About Management', icon: 'fas fa-info-circle' },
     { id: 'payment' as TabType, label: 'Payment Gateway', icon: 'fas fa-credit-card' },
+    { id: 'whatsapp' as TabType, label: 'WhatsApp Integration', icon: 'fab fa-whatsapp' },
     { id: 'settings' as TabType, label: 'Website Settings', icon: 'fas fa-cog' },
     { id: 'notifications' as TabType, label: 'Notifications', icon: 'fas fa-bell' },
     // { id: 'pages' as TabType, label: 'Pages', icon: 'fas fa-file' },

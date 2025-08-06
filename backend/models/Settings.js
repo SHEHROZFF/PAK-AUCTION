@@ -19,6 +19,23 @@ const settingsSchema = new mongoose.Schema({
     }
   },
 
+  // WhatsApp Settings
+  whatsappSettings: {
+    enabled: { type: Boolean, default: false },
+    phoneNumberId: { type: String, default: '' },
+    accessToken: { type: String, default: '' },
+    verifyToken: { type: String, default: '' },
+    businessAccountId: { type: String, default: '' },
+    webhookSecret: { type: String, default: '' },
+    adminPhoneNumbers: [{ type: String }], // Array of admin phone numbers
+    notifications: {
+      productSubmissions: { type: Boolean, default: true },
+      statusUpdates: { type: Boolean, default: true },
+      bidNotifications: { type: Boolean, default: false },
+      auctionEndNotifications: { type: Boolean, default: false }
+    }
+  },
+
   // Website Settings  
   websiteSettings: {
     general: {

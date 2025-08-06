@@ -383,6 +383,46 @@ class ApiService {
       body: JSON.stringify(auctionData),
     });
   }
+
+  // WhatsApp Integration APIs
+  async getWhatsAppStatus() {
+    return this.request('/whatsapp/status');
+  }
+
+  async getWhatsAppSettings() {
+    return this.request('/whatsapp/settings');
+  }
+
+  async updateWhatsAppSettings(settingsData: any) {
+    return this.request('/whatsapp/settings', {
+      method: 'PUT',
+      body: JSON.stringify(settingsData),
+    });
+  }
+
+  async testWhatsAppConfig() {
+    return this.request('/whatsapp/test-config', {
+      method: 'POST',
+    });
+  }
+
+  async sendWhatsAppTest(phoneNumber: string, message: string) {
+    return this.request('/whatsapp/test', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber, message }),
+    });
+  }
+
+  async sendWhatsAppNotification(phoneNumber: string, title: string, content: string) {
+    return this.request('/whatsapp/notify', {
+      method: 'POST',
+      body: JSON.stringify({ phoneNumber, title, content }),
+    });
+  }
+
+  async getWhatsAppSetupGuide() {
+    return this.request('/whatsapp/setup-guide');
+  }
 }
 
 export const apiService = new ApiService(); 

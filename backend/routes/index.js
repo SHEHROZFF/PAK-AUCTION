@@ -15,6 +15,7 @@ const contactRoutes = require('./contact');
 const aboutRoutes = require('./about');
 const homepageRoutes = require('./homepage');
 const productSubmissionRoutes = require('./productSubmissions');
+const whatsappRoutes = require('./whatsapp');
 const settingsController = require('../controllers/settingsController');
 
 // Public routes
@@ -34,6 +35,7 @@ router.use('/contact', contactRoutes);
 router.use('/about', aboutRoutes);
 router.use('/homepage', homepageRoutes);
 router.use('/product-submissions', productSubmissionRoutes);
+router.use('/whatsapp', whatsappRoutes);
 
 // Remove automatic category creation to avoid MongoDB replica set issues
 // Categories can be created manually via API endpoints
@@ -135,7 +137,15 @@ router.get('/', (req, res) => {
       'GET /api/product-submissions/admin/all',
       'PUT /api/product-submissions/admin/:id/status',
       'POST /api/product-submissions/admin/:id/convert-to-auction',
-      'DELETE /api/product-submissions/admin/:id'
+      'DELETE /api/product-submissions/admin/:id',
+      
+      // WhatsApp routes
+      'GET /api/whatsapp/status',
+      'POST /api/whatsapp/test',
+      'POST /api/whatsapp/notify',
+      'GET /api/whatsapp/setup-guide',
+      'GET /api/whatsapp/webhook',
+      'POST /api/whatsapp/webhook'
     ]
   });
 });

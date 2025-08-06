@@ -6,7 +6,7 @@
 class AuthManager {
   constructor() {
     // this.baseURL = 'http://localhost:5000/api/auth';
-    this.baseURL = 'https://pak-auc-back.com.phpnode.net/api/auth';
+    this.baseURL = 'https://app-c0af435a-abc2-4026-951e-e39dfcfe27c9.cleverapps.io/api/auth';
     this.currentUser = null;
     this.verificationCheckInterval = null;
     this.isInitialized = false;

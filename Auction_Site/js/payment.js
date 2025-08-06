@@ -6,7 +6,7 @@
 class PaymentManager {
   constructor() {
     // this.baseURL = 'http://localhost:5000/api';
-    this.baseURL = 'https://pak-auc-back.com.phpnode.net/api';
+    this.baseURL = 'https://app-c0af435a-abc2-4026-951e-e39dfcfe27c9.cleverapps.io/api';
     this.stripe = null;
     this.elements = null;
     this.card = null;

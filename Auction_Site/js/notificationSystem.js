@@ -5,6 +5,12 @@
 
 class NotificationSystem {
   constructor() {
+    // Prevent multiple instances - implement singleton pattern
+    if (NotificationSystem.instance) {
+      console.log('🔄 NotificationSystem already exists, returning existing instance');
+      return NotificationSystem.instance;
+    }
+    
     // this.baseURL = 'http://localhost:5000/api';
     this.baseURL = 'https://app-c0af435a-abc2-4026-951e-e39dfcfe27c9.cleverapps.io/api';
     // this.wsURL = 'ws://localhost:5000';
@@ -17,6 +23,10 @@ class NotificationSystem {
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
     this.reconnectDelay = 1000;
+    this.connectionAttemptInProgress = false;
+    
+    // Store singleton instance
+    NotificationSystem.instance = this;
     
     this.init();
   }
@@ -165,10 +175,26 @@ class NotificationSystem {
       return;
     }
 
+    // Prevent multiple connection attempts
+    if (this.connectionAttemptInProgress) {
+      console.log('🔄 WebSocket connection attempt already in progress, skipping');
+      return;
+    }
+
+    // Don't connect if already connected
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      console.log('✅ WebSocket already connected, skipping new connection');
+      return;
+    }
+
     try {
+      this.connectionAttemptInProgress = true;
+      
       // Close existing connection if any
       if (this.socket) {
+        console.log('🔌 Closing existing WebSocket connection');
         this.socket.close();
+        this.socket = null;
       }
 
       console.log('🔗 Attempting WebSocket connection to:', this.wsURL);
@@ -179,6 +205,7 @@ class NotificationSystem {
         console.log('✅ WebSocket connected successfully');
         this.isConnected = true;
         this.reconnectAttempts = 0;
+        this.connectionAttemptInProgress = false;
         this.updateConnectionStatus(true);
       };
 
@@ -197,21 +224,26 @@ class NotificationSystem {
       this.socket.onclose = (event) => {
         console.log('🔌 WebSocket disconnected:', event.code, event.reason);
         this.isConnected = false;
+        this.connectionAttemptInProgress = false;
         this.updateConnectionStatus(false);
         
-        // Only attempt reconnection if it wasn't a manual close
-        if (event.code !== 1000) {
+        // Only attempt reconnection if it wasn't a manual close (1000) or authentication failure (1008)
+        if (event.code !== 1000 && event.code !== 1008) {
           this.handleReconnect();
+        } else {
+          console.log('🛑 WebSocket closed normally or due to auth failure, not reconnecting');
         }
       };
 
       this.socket.onerror = (error) => {
         console.error('❌ WebSocket connection error:', error);
         this.isConnected = false;
+        this.connectionAttemptInProgress = false;
         this.updateConnectionStatus(false);
       };
     } catch (error) {
       console.error('❌ Error creating WebSocket connection:', error);
+      this.connectionAttemptInProgress = false;
       this.handleReconnect();
     }
   }
@@ -222,8 +254,13 @@ class NotificationSystem {
       console.log(`🔄 Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
       
       setTimeout(() => {
-        this.connectWebSocket();
+        // Check if we still need to reconnect
+        if (!this.isConnected && !this.connectionAttemptInProgress) {
+          this.connectWebSocket();
+        }
       }, this.reconnectDelay * this.reconnectAttempts);
+    } else {
+      console.log('🛑 Max reconnection attempts reached, stopping reconnection');
     }
   }
 
@@ -811,9 +848,18 @@ class NotificationSystem {
 
   // Cleanup
   destroy() {
+    console.log('🧹 Destroying NotificationSystem instance');
+    
+    // Close WebSocket connection
     if (this.socket) {
-      this.socket.close();
+      this.socket.close(1000, 'Instance destroyed');
+      this.socket = null;
     }
+    
+    // Reset flags
+    this.isConnected = false;
+    this.connectionAttemptInProgress = false;
+    this.reconnectAttempts = 0;
     
     // Remove UI elements
     const elements = [
@@ -828,6 +874,9 @@ class NotificationSystem {
         element.remove();
       }
     });
+    
+    // Clear singleton instance
+    NotificationSystem.instance = null;
   }
 }
 
@@ -835,15 +884,17 @@ class NotificationSystem {
 document.addEventListener('DOMContentLoaded', () => {
   // Wait for header to be loaded first
   setTimeout(() => {
-    // Only initialize if user is logged in
+    // Only initialize if user is logged in and no instance exists
     const token = localStorage.getItem('accessToken');
-    if (token) {
+    if (token && !window.notificationSystem) {
+      console.log('🚀 Initializing NotificationSystem for authenticated user');
       window.notificationSystem = new NotificationSystem();
     }
     
     // Listen for login events to initialize notifications
     window.addEventListener('userLoggedIn', () => {
       if (!window.notificationSystem) {
+        console.log('🔐 User logged in, initializing NotificationSystem');
         setTimeout(() => {
           window.notificationSystem = new NotificationSystem();
         }, 500);
@@ -853,6 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for logout events to cleanup notifications
     window.addEventListener('userLoggedOut', () => {
       if (window.notificationSystem) {
+        console.log('🚪 User logged out, destroying NotificationSystem');
         window.notificationSystem.destroy();
         window.notificationSystem = null;
       }
@@ -865,10 +917,21 @@ window.NotificationSystem = NotificationSystem;
 
 // Add method to manually initialize (for debugging)
 window.initNotifications = () => {
+  console.log('🔧 Manual notification system initialization requested');
+  
+  // Don't create new instance if one already exists and is connected
+  if (window.notificationSystem && window.notificationSystem.isConnected) {
+    console.log('⚠️ NotificationSystem already exists and is connected');
+    return window.notificationSystem;
+  }
+  
   if (window.notificationSystem) {
+    console.log('🧹 Destroying existing NotificationSystem before creating new one');
     window.notificationSystem.destroy();
   }
+  
   window.notificationSystem = new NotificationSystem();
+  return window.notificationSystem;
 };
 
 // Debug function to test notification bell creation

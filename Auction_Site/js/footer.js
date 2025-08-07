@@ -5,12 +5,16 @@
 
 class FooterManager {
   constructor() {
+    // this.baseURL = 'http://localhost:5000/api';
+    this.baseURL = 'https://app-c0af435a-abc2-4026-951e-e39dfcfe27c9.cleverapps.io/api';
+    this.categories = [];
     this.init();
   }
 
   // Initialize footer
   init() {
     this.createFooter();
+    this.loadCategories();
   }
 
   // Create and insert footer HTML
@@ -103,36 +107,11 @@ class FooterManager {
             <!-- Categories -->
             <div>
               <h3 class="text-lg font-semibold mb-6">Categories</h3>
-              <ul class="space-y-3">
-                <li>
-                  <a
-                    href="products.html?category=computers"
-                    class="text-gray-400 hover:text-white transition duration-300"
-                  >Computers</a>
-                </li>
-                <li>
-                  <a
-                    href="products.html?category=antiques"
-                    class="text-gray-400 hover:text-white transition duration-300"
-                  >Antiques</a>
-                </li>
-                <li>
-                  <a
-                    href="products.html?category=retro-games"
-                    class="text-gray-400 hover:text-white transition duration-300"
-                  >Retro Games</a>
-                </li>
-                <li>
-                  <a
-                    href="products.html?category=phones"
-                    class="text-gray-400 hover:text-white transition duration-300"
-                  >Phones</a>
-                </li>
-                <li>
-                  <a
-                    href="products.html?category=art"
-                    class="text-gray-400 hover:text-white transition duration-300"
-                  >Art</a>
+              <ul id="footer-categories" class="space-y-3">
+                <!-- Categories will be dynamically loaded here -->
+                <li class="flex items-center justify-center py-2">
+                  <i class="fas fa-spinner fa-spin text-gray-400 mr-2"></i>
+                  <span class="text-gray-500 text-sm">Loading...</span>
                 </li>
               </ul>
             </div>
@@ -196,6 +175,142 @@ class FooterManager {
     }
 
     console.log('✅ Footer component loaded successfully');
+  }
+
+  async loadCategories() {
+    try {
+      const response = await fetch(`${this.baseURL}/categories`);
+      if (response.ok) {
+        const data = await response.json();
+        const categories = data.data.categories || data.data || [];
+        this.categories = categories;
+        this.populateFooterCategories(categories);
+        console.log('✅ Footer categories loaded:', categories.length);
+      } else {
+        console.warn('Failed to load categories from API, using defaults');
+        this.useDefaultCategories();
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      this.useDefaultCategories();
+    }
+  }
+
+  populateFooterCategories(categories) {
+    const categoriesContainer = document.getElementById('footer-categories');
+    if (!categoriesContainer) {
+      console.warn('Footer categories container not found');
+      return;
+    }
+
+    // Clear existing content
+    categoriesContainer.innerHTML = '';
+
+    // Add "All Products" link first
+    const allProductsItem = document.createElement('li');
+    allProductsItem.innerHTML = `
+      <a href="products.html" class="text-gray-400 hover:text-white transition duration-300">
+        All Products
+      </a>
+    `;
+    categoriesContainer.appendChild(allProductsItem);
+
+    // Add dynamic categories (limit to 6 for footer)
+    const displayCategories = categories.slice(0, 6);
+    displayCategories.forEach(category => {
+      const listItem = document.createElement('li');
+      const slug = category.slug || category.name.toLowerCase().replace(/\s+/g, '-');
+      
+      listItem.innerHTML = `
+        <a href="products.html?category=${encodeURIComponent(slug)}" 
+           class="text-gray-400 hover:text-white transition duration-300">
+          ${category.name}
+        </a>
+      `;
+      categoriesContainer.appendChild(listItem);
+    });
+  }
+
+  useDefaultCategories() {
+    // These match the backend categories exactly
+    const defaultCategories = [
+      { name: 'Electronics', slug: 'electronics' },
+      { name: 'Computers', slug: 'computers' },
+      { name: 'Phones & Tablets', slug: 'phones-tablets' },
+      { name: 'Antiques', slug: 'antiques' },
+      { name: 'Art', slug: 'art' },
+      { name: 'Vehicles', slug: 'vehicles' }
+    ];
+
+    this.categories = defaultCategories;
+    this.populateFooterCategories(defaultCategories);
+    console.log('✅ Using default categories for footer');
+  }
+
+  // Static method to update footer categories from any page
+  static async updateFooterCategories() {
+    const baseURL = '/api';
+    try {
+      const response = await fetch(`${baseURL}/categories`);
+      if (response.ok) {
+        const data = await response.json();
+        const categories = data.data.categories || data.data || [];
+        FooterManager.populateStaticFooterCategories(categories);
+        console.log('✅ Static footer categories updated:', categories.length);
+      } else {
+        console.warn('Failed to load categories from API, using defaults');
+        FooterManager.useStaticDefaultCategories();
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      FooterManager.useStaticDefaultCategories();
+    }
+  }
+
+  static populateStaticFooterCategories(categories) {
+    const categoriesContainer = document.getElementById('footer-categories');
+    if (!categoriesContainer) return;
+
+    // Clear existing content
+    categoriesContainer.innerHTML = '';
+
+    // Add "All Products" link first
+    const allProductsItem = document.createElement('li');
+    allProductsItem.innerHTML = `
+      <a href="products.html" class="text-gray-400 hover:text-white transition duration-300">
+        All Products
+      </a>
+    `;
+    categoriesContainer.appendChild(allProductsItem);
+
+    // Add dynamic categories (limit to 6 for footer)
+    const displayCategories = categories.slice(0, 6);
+    displayCategories.forEach(category => {
+      const listItem = document.createElement('li');
+      const slug = category.slug || category.name.toLowerCase().replace(/\s+/g, '-');
+      
+      listItem.innerHTML = `
+        <a href="products.html?category=${encodeURIComponent(slug)}" 
+           class="text-gray-400 hover:text-white transition duration-300">
+          ${category.name}
+        </a>
+      `;
+      categoriesContainer.appendChild(listItem);
+    });
+  }
+
+  static useStaticDefaultCategories() {
+    const defaultCategories = [
+      { name: 'Electronics', slug: 'electronics' },
+      { name: 'Computers', slug: 'computers' },
+      { name: 'Phones & Tablets', slug: 'phones-tablets' },
+      { name: 'Antiques', slug: 'antiques' },
+      { name: 'Art', slug: 'art' },
+      { name: 'Vehicles', slug: 'vehicles' }
+    ];
+
+    FooterManager.populateStaticFooterCategories(defaultCategories);
+    console.log('✅ Using default categories for static footer');
   }
 }
 

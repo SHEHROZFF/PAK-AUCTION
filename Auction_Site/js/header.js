@@ -5,6 +5,9 @@
 
 class HeaderManager {
   constructor() {
+    // this.baseURL = 'http://localhost:5000/api';
+    this.baseURL = 'https://app-c0af435a-abc2-4026-951e-e39dfcfe27c9.cleverapps.io/api';
+    this.categories = [];
     this.init();
   }
 
@@ -12,6 +15,7 @@ class HeaderManager {
     this.renderHeader();
     this.bindHeaderEvents();
     this.setupAuthListener();
+    this.loadCategories();
   }
 
   setupAuthListener() {
@@ -84,11 +88,15 @@ class HeaderManager {
         </div>
       `;
       
-      // Trigger notification system initialization
+      // Trigger notification system initialization only if needed
       setTimeout(() => {
-        if (window.notificationSystem) {
-          window.notificationSystem.init();
+        if (window.notificationSystem && window.notificationSystem.isConnected) {
+          console.log('✅ NotificationSystem already initialized and connected');
+        } else if (window.notificationSystem && !window.notificationSystem.isConnected) {
+          console.log('🔄 NotificationSystem exists but not connected, reconnecting...');
+          window.notificationSystem.connectWebSocket();
         } else if (window.initNotifications) {
+          console.log('🚀 Initializing NotificationSystem from header');
           window.initNotifications();
         }
       }, 100);
@@ -149,6 +157,149 @@ class HeaderManager {
     });
   }
 
+  async loadCategories() {
+    try {
+      const response = await fetch(`${this.baseURL}/categories`);
+      if (response.ok) {
+        const data = await response.json();
+        const categories = data.data.categories || data.data || [];
+        this.categories = categories;
+        this.populateProductsDropdown(categories);
+        console.log('✅ Header categories loaded:', categories.length);
+      } else {
+        console.warn('Failed to load categories from API, using defaults');
+        this.useDefaultCategories();
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      this.useDefaultCategories();
+    }
+  }
+
+  populateProductsDropdown(categories) {
+    const dropdownMenu = document.querySelector('.dropdown-menu .py-1');
+    if (!dropdownMenu) {
+      console.warn('Header dropdown menu not found');
+      return;
+    }
+
+    // Clear existing categories
+    dropdownMenu.innerHTML = '';
+
+    // Add "All Products" link first
+    const allProductsLink = document.createElement('a');
+    allProductsLink.href = 'products.html';
+    allProductsLink.className = 'block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600';
+    allProductsLink.textContent = 'All Products';
+    dropdownMenu.appendChild(allProductsLink);
+
+    // Add separator
+    const separator = document.createElement('div');
+    separator.className = 'border-t border-gray-100 my-1';
+    dropdownMenu.appendChild(separator);
+
+    // Add dynamic categories
+    categories.forEach(category => {
+      const link = document.createElement('a');
+      link.href = `products.html?category=${encodeURIComponent(category.slug || category.name.toLowerCase().replace(/\s+/g, '-'))}`;
+      link.className = 'block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600';
+      link.textContent = category.name;
+      dropdownMenu.appendChild(link);
+    });
+  }
+
+  // Static method that can be called from any page to update header categories
+  static async updateHeaderCategories() {
+    const baseURL = '/api';
+    try {
+      const response = await fetch(`${baseURL}/categories`);
+      if (response.ok) {
+        const data = await response.json();
+        const categories = data.data.categories || data.data || [];
+        HeaderManager.populateStaticDropdown(categories);
+        console.log('✅ Static header categories updated:', categories.length);
+      } else {
+        console.warn('Failed to load categories from API, using defaults');
+        HeaderManager.useStaticDefaultCategories();
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      HeaderManager.useStaticDefaultCategories();
+    }
+  }
+
+  static populateStaticDropdown(categories) {
+    const dropdownMenu = document.querySelector('.dropdown-menu .py-1');
+    if (!dropdownMenu) return;
+
+    // Clear existing categories
+    dropdownMenu.innerHTML = '';
+
+    // Add "All Products" link first
+    const allProductsLink = document.createElement('a');
+    allProductsLink.href = 'products.html';
+    allProductsLink.className = 'block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600';
+    allProductsLink.textContent = 'All Products';
+    dropdownMenu.appendChild(allProductsLink);
+
+    // Add separator
+    const separator = document.createElement('div');
+    separator.className = 'border-t border-gray-100 my-1';
+    dropdownMenu.appendChild(separator);
+
+    // Add dynamic categories
+    categories.forEach(category => {
+      const link = document.createElement('a');
+      link.href = `products.html?category=${encodeURIComponent(category.slug || category.name.toLowerCase().replace(/\s+/g, '-'))}`;
+      link.className = 'block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600';
+      link.textContent = category.name;
+      dropdownMenu.appendChild(link);
+    });
+  }
+
+  static useStaticDefaultCategories() {
+    // These match the backend categories exactly
+    const defaultCategories = [
+      { name: 'Electronics', slug: 'electronics' },
+      { name: 'Computers', slug: 'computers' },
+      { name: 'Phones & Tablets', slug: 'phones-tablets' },
+      { name: 'Furniture', slug: 'furniture' },
+      { name: 'Clothing', slug: 'clothing' },
+      { name: 'Books', slug: 'books' },
+      { name: 'Vehicles', slug: 'vehicles' },
+      { name: 'Antiques', slug: 'antiques' },
+      { name: 'Art', slug: 'art' },
+      { name: 'Jewelry', slug: 'jewelry' },
+      { name: 'Collectibles', slug: 'collectibles' },
+      { name: 'Other', slug: 'other' }
+    ];
+
+    HeaderManager.populateStaticDropdown(defaultCategories);
+    console.log('✅ Using default categories for static header');
+  }
+
+  useDefaultCategories() {
+    // These match the backend categories exactly
+    const defaultCategories = [
+      { name: 'Electronics', slug: 'electronics' },
+      { name: 'Computers', slug: 'computers' },
+      { name: 'Phones & Tablets', slug: 'phones-tablets' },
+      { name: 'Furniture', slug: 'furniture' },
+      { name: 'Clothing', slug: 'clothing' },
+      { name: 'Books', slug: 'books' },
+      { name: 'Vehicles', slug: 'vehicles' },
+      { name: 'Antiques', slug: 'antiques' },
+      { name: 'Art', slug: 'art' },
+      { name: 'Jewelry', slug: 'jewelry' },
+      { name: 'Collectibles', slug: 'collectibles' },
+      { name: 'Other', slug: 'other' }
+    ];
+
+    this.categories = defaultCategories;
+    this.populateProductsDropdown(defaultCategories);
+    console.log('✅ Using default categories for header');
+  }
+
   renderHeader() {
     const headerContainer = document.getElementById('header-container') || document.querySelector('header');
     
@@ -186,12 +337,11 @@ class HeaderManager {
                   </button>
                   <div class="dropdown-menu absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block z-50">
                     <div class="py-1">
-                      <a href="products.html?category=computers" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Computers</a>
-                      <a href="products.html?category=antiques" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Antiques</a>
-                      <a href="products.html?category=dvd" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">DVD</a>
-                      <a href="products.html?category=retro-games" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Retro Games</a>
-                      <a href="products.html?category=phones" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Phones</a>
-                      <a href="products.html?category=art" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600">Art</a>
+                      <!-- Categories will be dynamically loaded here -->
+                      <div class="flex items-center justify-center py-4">
+                        <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                        <span class="ml-2 text-sm text-gray-500">Loading...</span>
+                      </div>
                     </div>
                   </div>
                 </div>

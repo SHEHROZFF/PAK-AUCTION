@@ -625,6 +625,8 @@
     <script src="js/utility.js"></script>
     <!-- Auth Script -->
     <script src="js/auth.js"></script>
+    <!-- Header Management -->
+    <script src="js/header.js"></script>
     <!-- Products Script -->
     <script src="js/products.js"></script>
     <!-- Footer Script -->
@@ -632,5 +634,14 @@
   
     <!-- Notification System -->
     <script src="js/notificationSystem.js"></script>
+    
+    <script>
+      // Update header categories when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof HeaderManager !== 'undefined') {
+          HeaderManager.updateHeaderCategories();
+        }
+      });
+    </script>
   </body>
 </html>

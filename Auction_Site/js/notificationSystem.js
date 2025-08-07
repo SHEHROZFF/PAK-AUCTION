@@ -8,7 +8,7 @@ class NotificationSystem {
     // this.baseURL = 'http://localhost:5000/api';
     this.baseURL = 'https://app-c0af435a-abc2-4026-951e-e39dfcfe27c9.cleverapps.io/api';
     // this.wsURL = 'ws://localhost:5000';
-    this.wsURL = 'wss://pak-auc-back.com.phpnode.net';
+    this.wsURL = 'wss://app-c0af435a-abc2-4026-951e-e39dfcfe27c9.cleverapps.io';
     
     this.socket = null;
     this.notifications = [];

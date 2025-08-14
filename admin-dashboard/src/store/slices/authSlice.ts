@@ -35,9 +35,16 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await apiService.login(email, password, rememberMe);
       if (response.success && (response.data.user.role === 'ADMIN' || response.data.user.role === 'MODERATOR')) {
-        // Store the token in localStorage
+        // Store tokens in localStorage
         localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // Store refresh token for cross-domain compatibility (if provided)
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+          console.log('💾 Admin: Refresh token stored for cross-domain support');
+        }
+        
         return { user: response.data.user, token: response.data.token };
       } else {
         return rejectWithValue('Access denied. Admin privileges required.');
@@ -55,11 +62,13 @@ export const logoutUser = createAsyncThunk(
       await apiService.logout();
       // Clear tokens from localStorage
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       return null;
     } catch (error: any) {
       // Even if logout fails, clear local storage
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       return rejectWithValue(error.message || 'Logout failed');
     }
@@ -83,10 +92,12 @@ export const checkAuth = createAsyncThunk(
       // Clear invalid tokens
       localStorage.removeItem('user');
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       return null;
     } catch (error: any) {
       localStorage.removeItem('user');
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       return null;
     }
   }

@@ -57,22 +57,14 @@ export interface ResetPasswordRequest {
 }
 
 export interface LoginResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: User;
-    token: string;
-    refreshToken: string;
-  };
+  user: User;
+  token: string;
+  refreshToken: string;
 }
 
 export interface RegisterResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: User;
-    verificationRequired: boolean;
-  };
+  user: User;
+  verificationRequired: boolean;
 }
 
 export interface ApiResponse<T = any> {

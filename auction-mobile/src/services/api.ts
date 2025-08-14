@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import { API_BASE_URL, API_ENDPOINTS, REQUEST_TIMEOUT, STORAGE_KEYS } from '../constants/api';
+import { API_BASE_URL, API_ENDPOINTS, REQUEST_TIMEOUT } from '../constants/api';
+import tokenManager from './tokenManager';
+import authEventBus from './authEventBus';
 import { 
   LoginRequest, 
   RegisterRequest, 
@@ -12,8 +13,15 @@ import {
   ApiResponse 
 } from '../types/auth';
 
+/**
+ * Enhanced API Service with Race-Condition-Free Token Management
+ * 
+ * This service integrates with the new TokenManager to provide seamless
+ * authentication and automatic token refresh without race conditions.
+ */
 class ApiService {
   private api: AxiosInstance;
+  private isAuthFailureHandled = false;
 
   constructor() {
     this.api = axios.create({
@@ -24,52 +32,164 @@ class ApiService {
       },
     });
 
-    // Request interceptor to add auth token
+    this.setupInterceptors();
+  }
+
+  /**
+   * Setup request and response interceptors
+   */
+  private setupInterceptors(): void {
+    // Request interceptor - Add auth token to requests
     this.api.interceptors.request.use(
       async (config) => {
-        const token = await SecureStore.getItemAsync(STORAGE_KEYS.AUTH_TOKEN);
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+        try {
+          const token = await tokenManager.getAccessToken();
+          if (token && config.headers) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+          return config;
+        } catch (error) {
+          console.error('❌ API: Failed to add auth token:', error);
+          return config;
         }
-        return config;
       },
       (error) => {
+        console.error('❌ API: Request interceptor error:', error);
         return Promise.reject(error);
       }
     );
 
-    // Response interceptor to handle token refresh
+    // Response interceptor - Handle token refresh
     this.api.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
         const originalRequest = error.config as any;
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
+        // Don't try to refresh for refresh token requests or if already retried
+        if (this.isRefreshTokenRequest(originalRequest) || originalRequest._isRetry) {
+          return Promise.reject(error);
+        }
 
-          try {
-            const refreshToken = await SecureStore.getItemAsync(STORAGE_KEYS.REFRESH_TOKEN);
-            if (refreshToken) {
-              const response = await this.refreshToken(refreshToken);
-              if (response.data) {
-                const newToken = response.data.token;
-                
-                await SecureStore.setItemAsync(STORAGE_KEYS.AUTH_TOKEN, newToken);
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                
-                return this.api(originalRequest);
-              }
-            }
-          } catch (refreshError) {
-            // Refresh failed, redirect to login
-            await this.clearAuthData();
-            throw refreshError;
-          }
+        // Handle 401 errors with token refresh
+        if (error.response?.status === 401) {
+          return this.handleUnauthorizedError(originalRequest, error);
         }
 
         return Promise.reject(error);
       }
     );
+  }
+
+  /**
+   * Check if the request is a refresh token request
+   */
+  private isRefreshTokenRequest(config: any): boolean {
+    return config?.url?.includes('/refresh-token');
+  }
+
+  /**
+   * Handle 401 unauthorized errors with automatic token refresh
+   */
+  private async handleUnauthorizedError(originalRequest: any, error: AxiosError): Promise<any> {
+    try {
+      console.log('🔄 API: 401 detected, attempting token refresh...');
+      
+      // Mark request as retry to prevent infinite loops
+      originalRequest._isRetry = true;
+
+      // Use the TokenManager to handle refresh (race-condition safe)
+      const newToken = await tokenManager.refreshAccessToken(async (refreshToken) => {
+        return this.makeRefreshRequest(refreshToken);
+      });
+
+      if (newToken) {
+        console.log('✅ API: Token refreshed, retrying original request');
+        
+        // Update the original request with new token
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        }
+
+        // Retry the original request
+        return this.api(originalRequest);
+      } else {
+        console.log('❌ API: Token refresh failed, user needs to re-authenticate');
+        
+        // Clear all auth data
+        await tokenManager.clearAll();
+        
+        // You can emit an event here or call a logout callback
+        this.handleAuthenticationFailure();
+        
+        return Promise.reject(error);
+      }
+    } catch (refreshError) {
+      console.error('❌ API: Token refresh error:', refreshError);
+      
+      // Clear all auth data on refresh failure
+      await tokenManager.clearAll();
+      this.handleAuthenticationFailure();
+      
+      return Promise.reject(error);
+    }
+  }
+
+  /**
+   * Make the actual refresh token request
+   */
+  private async makeRefreshRequest(refreshToken: string): Promise<{ token: string; refreshToken?: string }> {
+    try {
+      console.log('🔑 API: Making refresh token request...');
+      
+      const response = await axios.post(
+        `${API_BASE_URL}${API_ENDPOINTS.AUTH.REFRESH_TOKEN}`,
+        { refreshToken },
+        {
+          timeout: REQUEST_TIMEOUT,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+
+      if (response.data?.success && response.data?.data) {
+        const { token, refreshToken: newRefreshToken } = response.data.data;
+        console.log('✅ API: Refresh token request successful');
+        
+        return {
+          token,
+          refreshToken: newRefreshToken
+        };
+      } else {
+        throw new Error('Invalid refresh response format');
+      }
+    } catch (error) {
+      console.error('❌ API: Refresh token request failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle authentication failure - emits auth failure event (once only)
+   */
+  private handleAuthenticationFailure(): void {
+    // Prevent multiple AUTH_FAILURE events
+    if (this.isAuthFailureHandled) {
+      console.log('🚪 API: Authentication failure already handled, skipping...');
+      return;
+    }
+    
+    console.log('🚪 API: Authentication failed, emitting AUTH_FAILURE event...');
+    this.isAuthFailureHandled = true;
+    
+    // Emit authentication failure event (will be handled by App component)
+    authEventBus.emit('AUTH_FAILURE');
+  }
+
+  /**
+   * Reset authentication failure flag (used after successful login)
+   */
+  resetAuthFailureFlag(): void {
+    console.log('🔄 API: Resetting auth failure flag');
+    this.isAuthFailureHandled = false;
   }
 
   // Helper method to handle API responses
@@ -79,7 +199,7 @@ class ApiService {
 
   // Helper method to handle API errors
   private handleError(error: AxiosError): never {
-    console.log('API Error:', error.response?.data || error.message);
+    console.log('❌ API Error:', error.response?.data || error.message);
     
     if (error.response?.data) {
       // Check if it's a validation error with specific field errors
@@ -101,101 +221,135 @@ class ApiService {
     }
   }
 
-  // Clear authentication data
-  private async clearAuthData(): Promise<void> {
-    await SecureStore.deleteItemAsync(STORAGE_KEYS.AUTH_TOKEN);
-    await SecureStore.deleteItemAsync(STORAGE_KEYS.REFRESH_TOKEN);
-    await SecureStore.deleteItemAsync(STORAGE_KEYS.USER_DATA);
-  }
+  // =============================================================================
+  // AUTH API METHODS
+  // =============================================================================
 
-  // Authentication methods
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
+  async login(credentials: LoginRequest): Promise<ApiResponse<LoginResponse>> {
     try {
-      const response = await this.api.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials);
+      const response = await this.api.post<ApiResponse<LoginResponse>>(
+        API_ENDPOINTS.AUTH.LOGIN, 
+        credentials
+      );
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // Mobile registration (automatically sends OTP)
-  async register(userData: RegisterRequest): Promise<RegisterResponse> {
+  async register(userData: RegisterRequest): Promise<ApiResponse<RegisterResponse>> {
     try {
-      // Add mobile flag to the existing register endpoint
-      const mobileData = { ...userData, isMobile: true };
-      const response = await this.api.post<RegisterResponse>(API_ENDPOINTS.AUTH.REGISTER, mobileData);
-      console.log(" register response",response);
+      const response = await this.api.post<ApiResponse<RegisterResponse>>(
+        API_ENDPOINTS.AUTH.REGISTER, 
+        userData
+      );
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // Verify OTP for email verification
   async verifyEmail(data: VerifyOTPRequest): Promise<ApiResponse> {
     try {
-      const response = await this.api.post<ApiResponse>(API_ENDPOINTS.AUTH.VERIFY_OTP, data);
+      const response = await this.api.post<ApiResponse>(
+        API_ENDPOINTS.AUTH.VERIFY_EMAIL, 
+        data
+      );
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // Verify OTP for password reset
   async verifyOTP(data: VerifyOTPRequest): Promise<ApiResponse> {
     try {
-      const response = await this.api.post<ApiResponse>(API_ENDPOINTS.AUTH.VERIFY_OTP, data);
+      const response = await this.api.post<ApiResponse>(
+        API_ENDPOINTS.AUTH.VERIFY_OTP, 
+        data
+      );
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // NEW: Verify Password Reset OTP (separate from email verification)
-  async verifyPasswordResetOTP(data: VerifyOTPRequest): Promise<ApiResponse> {
+  async sendOTP(data: { phone: string }): Promise<ApiResponse> {
     try {
-      const response = await this.api.post<ApiResponse>(API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, data);
+      const response = await this.api.post<ApiResponse>(
+        API_ENDPOINTS.AUTH.SEND_OTP, 
+        data
+      );
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // Send OTP for email verification (resend)
   async resendOTP(email: string): Promise<ApiResponse> {
     try {
-      const response = await this.api.post<ApiResponse>(API_ENDPOINTS.AUTH.SEND_OTP, { email });
+      const response = await this.api.post<ApiResponse>(
+        '/auth/resend-verification', 
+        { email }
+      );
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // Send OTP for password reset
   async forgotPassword(data: ForgotPasswordRequest): Promise<ApiResponse> {
     try {
-      const response = await this.api.post<ApiResponse>(API_ENDPOINTS.AUTH.FORGOT_PASSWORD_OTP, data);
+      const response = await this.api.post<ApiResponse>(
+        API_ENDPOINTS.AUTH.FORGOT_PASSWORD, 
+        data
+      );
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // Reset password with OTP
+  async forgotPasswordOTP(data: { phone: string }): Promise<ApiResponse> {
+    try {
+      const response = await this.api.post<ApiResponse>(
+        API_ENDPOINTS.AUTH.FORGOT_PASSWORD_OTP, 
+        data
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      this.handleError(error as AxiosError);
+    }
+  }
+
+  async verifyPasswordResetOTP(data: VerifyOTPRequest): Promise<ApiResponse> {
+    try {
+      const response = await this.api.post<ApiResponse>(
+        API_ENDPOINTS.AUTH.VERIFY_PASSWORD_RESET_OTP, 
+        data
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      this.handleError(error as AxiosError);
+    }
+  }
+
+  async resetPasswordOTP(data: ResetPasswordRequest): Promise<ApiResponse> {
+    try {
+      const response = await this.api.post<ApiResponse>(
+        API_ENDPOINTS.AUTH.RESET_PASSWORD_OTP, 
+        data
+      );
+      return this.handleResponse(response);
+    } catch (error) {
+      this.handleError(error as AxiosError);
+    }
+  }
+
   async resetPassword(data: ResetPasswordRequest): Promise<ApiResponse> {
     try {
-      const response = await this.api.post<ApiResponse>(API_ENDPOINTS.AUTH.RESET_PASSWORD_OTP, data);
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  async refreshToken(refreshToken: string): Promise<ApiResponse<{ token: string; refreshToken: string }>> {
-    try {
-      const response = await this.api.post<ApiResponse<{ token: string; refreshToken: string }>>(
-        API_ENDPOINTS.AUTH.REFRESH_TOKEN,
-        { refreshToken }
+      const response = await this.api.post<ApiResponse>(
+        API_ENDPOINTS.AUTH.RESET_PASSWORD, 
+        data
       );
       return this.handleResponse(response);
     } catch (error) {
@@ -206,10 +360,10 @@ class ApiService {
   async logout(): Promise<ApiResponse> {
     try {
       const response = await this.api.post<ApiResponse>(API_ENDPOINTS.AUTH.LOGOUT);
-      await this.clearAuthData();
+      await tokenManager.clearAll();
       return this.handleResponse(response);
     } catch (error) {
-      await this.clearAuthData();
+      await tokenManager.clearAll();
       this.handleError(error as AxiosError);
     }
   }
@@ -223,34 +377,91 @@ class ApiService {
     }
   }
 
-  // Store authentication data
+  // =============================================================================
+  // TOKEN MANAGEMENT METHODS (using TokenManager)
+  // =============================================================================
+
+  /**
+   * Store authentication data using TokenManager
+   */
   async storeAuthData(token: string, refreshToken: string, user: any): Promise<void> {
-    await SecureStore.setItemAsync(STORAGE_KEYS.AUTH_TOKEN, token);
-    await SecureStore.setItemAsync(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-    await SecureStore.setItemAsync(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
+    try {
+      await Promise.all([
+        tokenManager.storeTokens(token, refreshToken),
+        tokenManager.storeUserData(user)
+      ]);
+      console.log('✅ API: Auth data stored successfully');
+    } catch (error) {
+      console.error('❌ API: Failed to store auth data:', error);
+      throw error;
+    }
   }
 
-  // Get stored user data
+  /**
+   * Get stored user data
+   */
   async getStoredUserData(): Promise<any | null> {
     try {
-      const userData = await SecureStore.getItemAsync(STORAGE_KEYS.USER_DATA);
-      return userData ? JSON.parse(userData) : null;
-    } catch {
+      return await tokenManager.getUserData();
+    } catch (error) {
+      console.error('❌ API: Failed to get stored user data:', error);
       return null;
     }
   }
 
-  // Get stored token
+  /**
+   * Get stored access token
+   */
   async getStoredToken(): Promise<string | null> {
-    return await SecureStore.getItemAsync(STORAGE_KEYS.AUTH_TOKEN);
+    try {
+      return await tokenManager.getAccessToken();
+    } catch (error) {
+      console.error('❌ API: Failed to get stored token:', error);
+      return null;
+    }
   }
 
-  // Get stored refresh token
+  /**
+   * Get stored refresh token
+   */
   async getStoredRefreshToken(): Promise<string | null> {
-    return await SecureStore.getItemAsync(STORAGE_KEYS.REFRESH_TOKEN);
+    try {
+      return await tokenManager.getRefreshToken();
+    } catch (error) {
+      console.error('❌ API: Failed to get stored refresh token:', error);
+      return null;
+    }
   }
 
-  // Categories API methods
+  /**
+   * Clear all authentication data
+   */
+  async clearAuthData(): Promise<void> {
+    try {
+      await tokenManager.clearAll();
+      console.log('✅ API: Auth data cleared successfully');
+    } catch (error) {
+      console.error('❌ API: Failed to clear auth data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  async isAuthenticated(): Promise<boolean> {
+    try {
+      return await tokenManager.isAuthenticated();
+    } catch (error) {
+      console.error('❌ API: Failed to check authentication:', error);
+      return false;
+    }
+  }
+
+  // =============================================================================
+  // OTHER API METHODS (Categories, Auctions, etc.)
+  // =============================================================================
+
   async getCategories(): Promise<ApiResponse> {
     try {
       const response = await this.api.get<ApiResponse>(API_ENDPOINTS.CATEGORIES);
@@ -260,7 +471,6 @@ class ApiService {
     }
   }
 
-  // Auctions API methods
   async getAuctions(params?: {
     page?: number;
     limit?: number;
@@ -301,6 +511,26 @@ class ApiService {
     }
   }
 
+  async getUserBid(auctionId: string): Promise<ApiResponse> {
+    try {
+      const url = `/auctions/${auctionId}/user-bid`;
+      const response = await this.api.get<ApiResponse>(url);
+      return this.handleResponse(response);
+    } catch (error) {
+      this.handleError(error as AxiosError);
+    }
+  }
+
+  async getWatchlistStatus(auctionId: string): Promise<ApiResponse> {
+    try {
+      const url = `/auctions/${auctionId}/watchlist-status`;
+      const response = await this.api.get<ApiResponse>(url);
+      return this.handleResponse(response);
+    } catch (error) {
+      this.handleError(error as AxiosError);
+    }
+  }
+
   async toggleWatchlist(auctionId: string): Promise<ApiResponse> {
     try {
       const url = `/auctions/${auctionId}/watchlist`;
@@ -311,26 +541,6 @@ class ApiService {
     }
   }
 
-  // Homepage API methods
-  async getHomepageContent(): Promise<ApiResponse> {
-    try {
-      const response = await this.api.get<ApiResponse>('/homepage/content');
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  async getFeaturedAuction(): Promise<ApiResponse> {
-    try {
-      const response = await this.api.get<ApiResponse>('/homepage/featured-auction');
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  // User Dashboard API methods
   async getUserDashboard(): Promise<ApiResponse> {
     try {
       const response = await this.api.get<ApiResponse>(API_ENDPOINTS.USERS.DASHBOARD);
@@ -340,151 +550,57 @@ class ApiService {
     }
   }
 
-  async getUserBids(params?: { page?: number; limit?: number }): Promise<ApiResponse> {
+  async getUserBids(): Promise<ApiResponse> {
     try {
-      const response = await this.api.get<ApiResponse>(API_ENDPOINTS.USERS.BIDS, { params });
+      const response = await this.api.get<ApiResponse>(API_ENDPOINTS.USERS.BIDS);
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  async getUserWatchlist(params?: { page?: number; limit?: number }): Promise<ApiResponse> {
+  async getUserWatchlist(): Promise<ApiResponse> {
     try {
-      const response = await this.api.get<ApiResponse>(API_ENDPOINTS.USERS.WATCHLIST, { params });
+      const response = await this.api.get<ApiResponse>(API_ENDPOINTS.USERS.WATCHLIST);
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  async getUserWonAuctions(params?: { page?: number; limit?: number }): Promise<ApiResponse> {
+
+
+  async getAuctionBids(auctionId: string): Promise<ApiResponse> {
     try {
-      const response = await this.api.get<ApiResponse>('/users/won-auctions', { params });
+      const url = `/auctions/${auctionId}/bids`;
+      const response = await this.api.get<ApiResponse>(url);
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // Notifications API methods
-  async getNotifications(params?: { 
-    page?: number; 
-    limit?: number; 
-    unreadOnly?: boolean 
-  }): Promise<ApiResponse> {
-    try {
-      const response = await this.api.get<ApiResponse>(API_ENDPOINTS.USERS.NOTIFICATIONS, { params });
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  async markNotificationRead(id: string): Promise<ApiResponse> {
-    try {
-      const response = await this.api.put<ApiResponse>(`/users/notifications/${id}/read`);
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  async markAllNotificationsRead(): Promise<ApiResponse> {
-    try {
-      const response = await this.api.put<ApiResponse>('/users/notifications/read-all');
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  async deleteNotification(id: string): Promise<ApiResponse> {
-    try {
-      const response = await this.api.delete<ApiResponse>(`/users/notifications/${id}`);
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  async registerPushToken(pushToken: string): Promise<ApiResponse> {
-    try {
-      const response = await this.api.post<ApiResponse>('/mobile-auth/register-push-token', { pushToken });
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  // Profile update method
-  async updateProfile(profileData: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    dateOfBirth?: string;
-    marketingEmails?: boolean;
-    profilePhoto?: string;
-  }): Promise<ApiResponse> {
-    try {
-      const response = await this.api.put<ApiResponse>(API_ENDPOINTS.USERS.PROFILE, profileData);
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  // Payment API methods
   async getPaymentStatus(auctionId: string): Promise<ApiResponse> {
     try {
-      const response = await this.api.get<ApiResponse>(`/payments/status/${auctionId}`);
+      const url = `/payments/status/${auctionId}`;
+      const response = await this.api.get<ApiResponse>(url);
       return this.handleResponse(response);
     } catch (error) {
       this.handleError(error as AxiosError);
     }
   }
 
-  // Auction bid methods
-  async getAuctionBids(auctionId: string, params?: { page?: number; limit?: number }): Promise<ApiResponse> {
-    try {
-      const response = await this.api.get<ApiResponse>(`/auctions/${auctionId}/bids`, { params });
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  async getUserBidStatus(auctionId: string): Promise<ApiResponse> {
-    try {
-      const response = await this.api.get<ApiResponse>(`/auctions/${auctionId}/user-bid`);
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  async getWatchlistStatus(auctionId: string): Promise<ApiResponse> {
-    try {
-      const response = await this.api.get<ApiResponse>(`/auctions/${auctionId}/watchlist-status`);
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
-  }
-
-  // Settings
-  async getSettings(): Promise<ApiResponse> {
-    try {
-      // Use the public settings endpoint that doesn't require authentication
-      const response = await this.api.get<ApiResponse>('/settings');
-      // console.log("settings response",response.data);
-      
-      return this.handleResponse(response);
-    } catch (error) {
-      this.handleError(error as AxiosError);
-    }
+  /**
+   * Get debug information about the API service and token manager
+   */
+  getDebugInfo(): any {
+    return {
+      apiBaseURL: API_BASE_URL,
+      tokenManager: tokenManager.getDebugInfo()
+    };
   }
 }
 
-// Export as singleton
-export const apiService = new ApiService(); 
+// Export singleton instance
+export const apiService = new ApiService();
+export default apiService;

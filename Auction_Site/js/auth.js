@@ -10,6 +10,7 @@ class AuthManager {
     this.currentUser = null;
     this.verificationCheckInterval = null;
     this.isInitialized = false;
+    this.refreshPromise = null;
     this.init();
   }
 
@@ -67,6 +68,13 @@ class AuthManager {
       const token = localStorage.getItem('accessToken');
       const storedUserInfo = localStorage.getItem('userInfo');
       
+      console.log('📋 Current auth state:', {
+        hasToken: !!token,
+        tokenLength: token ? token.length : 0,
+        hasStoredUser: !!storedUserInfo,
+        note: 'HttpOnly refresh token cookies are invisible to JavaScript'
+      });
+      
       // If we have stored user info, use it immediately for UI updates
       if (storedUserInfo) {
         try {
@@ -79,26 +87,19 @@ class AuthManager {
         }
       }
       
-      // Prepare headers
-      const headers = {
-        'Content-Type': 'application/json'
-      };
-      
-      // Add Authorization header if token exists
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-        console.log('🔑 Token found, verifying with backend');
-      } else {
-        console.log('❌ No token in localStorage');
+      // If no token, we're not authenticated
+      if (!token) {
+        console.log('❌ No token in localStorage, user not authenticated');
         this.currentUser = null;
         this.updateUI();
         return;
       }
       
-      const response = await fetch(`${this.baseURL}/profile`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: headers
+      console.log('🔑 Token found, verifying with backend (will auto-refresh if expired)...');
+      
+      // Use makeAuthenticatedRequest to automatically handle token refresh
+      const response = await this.makeAuthenticatedRequest(`${this.baseURL}/profile`, {
+        method: 'GET'
       });
 
       if (response.ok) {
@@ -120,18 +121,39 @@ class AuthManager {
           this.showEmailVerificationNotice();
         }, 300);
       } else {
-        console.log('❌ Authentication failed:', response.status, response.statusText);
-        this.currentUser = null;
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('userInfo');
-        this.updateUI();
+        console.log('❌ Authentication failed after refresh attempts:', response.status);
+        
+        // Check if this is a real auth failure or just a network/server issue
+        if (response.status === 401) {
+          console.log('🔍 Token refresh failed - clearing stored data');
+          
+          // Note: We cannot check HttpOnly cookies from JavaScript
+          // If the refresh failed with 401, it means the refresh token is invalid/expired
+          console.log('🚪 Authentication failed after refresh attempt, logging out user');
+          console.log('🗑️ AUTH CHECK: Clearing localStorage tokens');
+          console.trace('🔍 AUTH CHECK: Call stack trace');
+          this.currentUser = null;
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('userInfo');
+          this.updateUI();
+        } else if (response.status >= 500) {
+          console.log('⚠️ Server error during auth check, keeping current state');
+          // Keep current user state for server errors
+        } else {
+          console.log('⚠️ Unexpected auth response, keeping current state');
+        }
       }
     } catch (error) {
       console.error('❌ Auth check failed:', error);
-      // Keep stored user info if it exists, since network might be down
-      if (!this.currentUser) {
+      
+      // For network errors, keep the stored user info if it exists
+      if (!this.currentUser && !localStorage.getItem('userInfo')) {
+        console.log('🔄 No stored user info, setting to logged out state');
         this.currentUser = null;
         this.updateUI();
+      } else {
+        console.log('📱 Keeping current user state due to network error');
       }
     }
   }
@@ -247,7 +269,20 @@ class AuthManager {
         
         // Store tokens - fix token field name mismatch
         if (data.data.token) {
+          console.log('💾 LOGIN: Storing new access token in localStorage');
+          console.log('🔑 LOGIN: Access token preview:', data.data.token.substring(0, 50) + '...');
           localStorage.setItem('accessToken', data.data.token);
+        } else {
+          console.log('❌ LOGIN: No access token in login response!');
+        }
+
+        // Store refresh token for cross-domain compatibility
+        if (data.data.refreshToken) {
+          console.log('💾 LOGIN: Storing refresh token in localStorage for cross-domain support');
+          console.log('🔄 LOGIN: Refresh token preview:', data.data.refreshToken.substring(0, 50) + '...');
+          localStorage.setItem('refreshToken', data.data.refreshToken);
+        } else {
+          console.log('⚠️ LOGIN: No refresh token in login response (relying on HttpOnly cookies)');
         }
 
         // Store user info for immediate access
@@ -743,7 +778,10 @@ class AuthManager {
       });
 
       // Clear local storage
+      console.log('🗑️ LOGOUT: Clearing localStorage tokens');
+      console.trace('🔍 LOGOUT: Call stack trace');
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('userInfo');
       this.currentUser = null;
       
@@ -764,7 +802,10 @@ class AuthManager {
     } catch (error) {
       console.error('Logout error:', error);
       // Even if logout fails on server, clear local state
+      console.log('🗑️ LOGOUT ERROR: Clearing localStorage tokens after error');
+      console.trace('🔍 LOGOUT ERROR: Call stack trace');
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       localStorage.removeItem('userInfo');
       this.currentUser = null;
       this.stopVerificationNoticeCheck();
@@ -1067,29 +1108,53 @@ class AuthManager {
     try {
       const response = await fetch(url, mergedOptions);
       
-      // Handle token refresh if needed
-      if (response.status === 401 && token) {
+      // Handle token refresh if needed (but NOT for refresh-token endpoint itself)
+      if (response.status === 401 && token && !url.includes('/refresh-token')) {
         console.log('🔄 Access token expired, attempting refresh...');
         
-        const refreshResponse = await fetch(`${this.baseURL}/refresh-token`, {
-          method: 'POST',
-          credentials: 'include'
-        });
-        
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          console.log('✅ Token refreshed successfully');
-          
-          // Fix: Use the correct property name from backend response
-          const newAccessToken = refreshData.data.token;
-          localStorage.setItem('accessToken', newAccessToken);
-          
-          // Retry original request with new token
-          mergedOptions.headers['Authorization'] = `Bearer ${newAccessToken}`;
-          console.log('🔄 Retrying original request with new token');
-          return await fetch(url, mergedOptions);
-        } else {
-          // Refresh failed, logout user
+        // Use shared refresh promise to prevent concurrent refreshes
+        if (!this.refreshPromise) {
+          this.refreshPromise = this.performRefresh();
+        }
+
+        try {
+          const newAccessToken = await this.refreshPromise;
+          this.refreshPromise = null; // Reset after completion
+
+          if (newAccessToken) {
+            // Retry original request with new token
+            mergedOptions.headers['Authorization'] = `Bearer ${newAccessToken}`;
+            console.log('🔄 Retrying original request with new token');
+            const retryResponse = await fetch(url, mergedOptions);
+            
+            // Check if retry was successful
+            if (retryResponse.ok) {
+              console.log('✅ Request successful after token refresh');
+              return retryResponse;
+            } else {
+              console.log('❌ Request failed even after token refresh:', retryResponse.status);
+              // Only logout if it's still a 401 after refresh
+              if (retryResponse.status === 401 && (url.includes('/auth/profile') || url.includes('/users/'))) {
+                console.log('❌ Critical auth endpoint still failing after refresh, logging out user');
+                this.handleLogout();
+              }
+              return retryResponse;
+            }
+          } else {
+            // Refresh failed - check if we should logout or just return error
+            console.log('❌ Token refresh failed');
+            
+            // If this is a critical auth endpoint, logout user
+            if (url.includes('/auth/profile') || url.includes('/users/')) {
+              console.log('❌ Critical auth endpoint failed, logging out user');
+              this.handleLogout();
+            } else {
+              console.log('⚠️ Non-critical endpoint failed, returning 401 response');
+            }
+            return response;
+          }
+        } catch (refreshError) {
+          this.refreshPromise = null; // Reset on error
           console.log('❌ Token refresh failed, logging out user');
           this.handleLogout();
           return response;
@@ -1100,6 +1165,76 @@ class AuthManager {
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
+    }
+  }
+
+  // Centralized refresh method to prevent concurrent refreshes
+  async performRefresh() {
+    try {
+              console.log('🔑 Web: Making refresh request...');
+        console.log('🍪 Web: Sending request with credentials (HttpOnly cookies will be sent automatically)');
+      
+      // Check if we have refresh token in localStorage (for cross-domain scenarios)
+      const storedRefreshToken = localStorage.getItem('refreshToken');
+      const requestBody = storedRefreshToken ? { refreshToken: storedRefreshToken } : {};
+      
+      if (storedRefreshToken) {
+        console.log('🔄 Web: Using stored refresh token for cross-domain compatibility');
+      } else {
+        console.log('🍪 Web: No stored refresh token, relying on HttpOnly cookies');
+      }
+      
+      const refreshResponse = await fetch(`${this.baseURL}/refresh-token`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('🔄 Web: Refresh response status:', refreshResponse.status);
+      
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+        console.log('✅ Web: Token refreshed successfully:', {
+          success: refreshData.success,
+          message: refreshData.message,
+          hasToken: !!refreshData.data?.token,
+          hasRefreshToken: !!refreshData.data?.refreshToken
+        });
+        
+        // Use the correct property name from backend response
+        const newAccessToken = refreshData.data.token;
+        
+        if (newAccessToken) {
+          localStorage.setItem('accessToken', newAccessToken);
+          console.log('💾 Web: New access token stored in localStorage');
+          console.log('🔑 Web: New token preview:', newAccessToken.substring(0, 50) + '...');
+          
+          // Store new refresh token if provided (for cross-domain scenarios)
+          if (refreshData.data.refreshToken) {
+            localStorage.setItem('refreshToken', refreshData.data.refreshToken);
+            console.log('🔄 Web: New refresh token stored in localStorage');
+          }
+          
+          return newAccessToken;
+        } else {
+          console.log('❌ Web: No access token in refresh response');
+          return null;
+        }
+      } else {
+        const errorData = await refreshResponse.json().catch(() => ({}));
+        console.log('❌ Web: Refresh response not ok:', {
+          status: refreshResponse.status,
+          error: errorData,
+          note: 'Cannot check HttpOnly refresh token from JavaScript'
+        });
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Web: Refresh request failed with exception:', error);
+      return null; // Return null instead of throwing to prevent unhandled rejections
     }
   }
 

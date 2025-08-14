@@ -9,6 +9,7 @@ import {
   User 
 } from '../../types/auth';
 import { apiService } from '../../services/api';
+import tokenManager from '../../services/tokenManager';
 
 // Initial state
 const initialState: AuthState = {
@@ -28,18 +29,29 @@ export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: LoginRequest, { rejectWithValue }) => {
     try {
+      console.log('🔐 Auth: Starting login process...', { email: credentials.email });
       const response = await apiService.login(credentials);
+      console.log('🔐 Auth: Login API response:', { 
+        success: response.success, 
+        hasData: !!response.data,
+        dataKeys: response.data ? Object.keys(response.data) : []
+      });
+      
       if (response.success && response.data) {
         // After successful login, fetch complete profile data
         const profileResponse = await apiService.getProfile();
         
         if (profileResponse.success && profileResponse.data?.user) {
           // Store complete user data including profile fields
-          await apiService.storeAuthData(
-            response.data.token,
-            response.data.refreshToken,
-            profileResponse.data.user // Use complete profile data instead of login response user data
-          );
+          console.log('💾 Auth: Storing tokens from login...', {
+            hasToken: !!response.data.token,
+            hasRefreshToken: !!response.data.refreshToken
+          });
+          await tokenManager.storeTokens(response.data.token, response.data.refreshToken);
+          await tokenManager.storeUserData(profileResponse.data.user);
+          
+          // Reset API service auth failure flag on successful login
+          apiService.resetAuthFailureFlag();
           
           return {
             user: profileResponse.data.user, // Return complete user data
@@ -48,13 +60,13 @@ export const loginUser = createAsyncThunk(
           };
         } else {
           // Fallback to login response data if profile fetch fails
-        await apiService.storeAuthData(
-          response.data.token,
-          response.data.refreshToken,
-          response.data.user
-        );
+          await tokenManager.storeTokens(response.data.token, response.data.refreshToken);
+          await tokenManager.storeUserData(response.data.user);
           
-        return response.data;
+          // Reset API service auth failure flag on successful login
+          apiService.resetAuthFailureFlag();
+          
+          return response.data;
         }
       }
       throw new Error(response.message || 'Login failed');
@@ -171,11 +183,35 @@ export const resetPassword = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk(
   'auth/logout',
-  async (_, { rejectWithValue }) => {
+  async (options: { silent?: boolean } = {}, { rejectWithValue }) => {
     try {
-      await apiService.logout();
+      console.log('🚪 Auth: Logging out user...', options);
+      
+      // Only call logout API if not silent mode (silent = tokens already expired)
+      if (!options.silent) {
+        try {
+          await apiService.logout();
+          console.log('✅ Auth: Server logout successful');
+        } catch (apiError) {
+          console.warn('⚠️ Auth: Server logout failed, clearing local data anyway:', apiError);
+        }
+      } else {
+        console.log('🔇 Auth: Silent logout (tokens expired), skipping server call');
+      }
+      
+      // Ensure all local data is cleared
+      await tokenManager.clearAll();
+      console.log('✅ Auth: Local authentication data cleared');
+      
       return true;
     } catch (error: any) {
+      console.error('❌ Auth: Logout error:', error);
+      // Even if logout fails, try to clear local data
+      try {
+        await tokenManager.clearAll();
+      } catch (clearError) {
+        console.error('❌ Auth: Failed to clear local data:', clearError);
+      }
       return rejectWithValue(error.message || 'Logout failed');
     }
   }
@@ -185,23 +221,38 @@ export const loadStoredAuth = createAsyncThunk(
   'auth/loadStored',
   async (_, { rejectWithValue }) => {
     try {
-      const [token, refreshToken] = await Promise.all([
-        apiService.getStoredToken(),
-        apiService.getStoredRefreshToken(),
+      console.log('🔄 Auth: Loading stored authentication...');
+      
+      // Initialize token manager cache
+      await tokenManager.initializeCache();
+      
+      // Check if user is authenticated
+      const isAuthenticated = await tokenManager.isAuthenticated();
+      if (!isAuthenticated) {
+        console.log('❌ Auth: No stored authentication found');
+        return null;
+      }
+
+      const [token, refreshToken, userData] = await Promise.all([
+        tokenManager.getAccessToken(),
+        tokenManager.getRefreshToken(),
+        tokenManager.getUserData(),
       ]);
 
       if (token) {
-        // Always fetch fresh profile data to ensure we have complete user information
+        console.log('✅ Auth: Found stored token, verifying with profile request...');
+        
+        // Always fetch fresh profile data to ensure token is still valid
         try {
           const profileResponse = await apiService.getProfile();
           if (profileResponse.success && profileResponse.data?.user) {
-            // Store the complete user data with existing tokens
-            await apiService.storeAuthData(
-              token,
-              refreshToken || '', // Use empty string if no refresh token
-              profileResponse.data.user
-            );
+            // Update stored user data with fresh profile
+            await tokenManager.storeUserData(profileResponse.data.user);
             
+            // Reset API service auth failure flag on successful auth restoration
+            apiService.resetAuthFailureFlag();
+            
+            console.log('✅ Auth: Profile verified, authentication restored');
             return {
               token,
               refreshToken,
@@ -209,14 +260,19 @@ export const loadStoredAuth = createAsyncThunk(
             };
           }
         } catch (error) {
-          // Token is invalid, clear stored data
-          await apiService.logout();
-          throw new Error('Token expired');
+          console.log('❌ Auth: Profile verification failed, clearing stored data');
+          // Token is invalid, clear all stored data
+          await tokenManager.clearAll();
+          throw new Error('Token expired or invalid');
         }
       }
       
+      console.log('❌ Auth: No valid authentication found');
       return null;
     } catch (error: any) {
+      console.error('❌ Auth: Failed to load stored authentication:', error);
+      // Clear potentially corrupted data
+      await tokenManager.clearAll();
       return rejectWithValue(error.message || 'Failed to load stored authentication');
     }
   }
@@ -252,9 +308,11 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isAuthenticated = true;
-        state.user = action.payload.user;
-        state.token = action.payload.token;
-        state.refreshToken = action.payload.refreshToken;
+        if (action.payload) {
+          state.user = action.payload.user;
+          state.token = action.payload.token;
+          state.refreshToken = action.payload.refreshToken;
+        }
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -271,8 +329,10 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
-        state.verificationSent = action.payload.verificationRequired || false;
+        if (action.payload) {
+          state.user = action.payload.user;
+          state.verificationSent = action.payload.verificationRequired || false;
+        }
         state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {

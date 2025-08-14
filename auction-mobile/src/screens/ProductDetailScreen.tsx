@@ -227,7 +227,7 @@ const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ navigation, r
     
     try {
       const { apiService } = await import('../services/api');
-      const response = await apiService.getUserBidStatus(auctionId);
+              const response = await apiService.getUserBid(auctionId);
       if (response.success) {
         setUserBidStatus(response.data);
       }

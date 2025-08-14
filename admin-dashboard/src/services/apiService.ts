@@ -1,11 +1,67 @@
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 // const API_BASE_URL = 'https://pak-auc-back.com.phpnode.net/api';
 class ApiService {
+  private refreshPromise: Promise<string | null> | null = null;
+
   private getAuthToken(): string | null {
     return localStorage.getItem('authToken');
   }
 
-  private async request(endpoint: string, options: RequestInit = {}) {
+  private getRefreshToken(): string | null {
+    return localStorage.getItem('refreshToken');
+  }
+
+  private async refreshAuthToken(): Promise<string | null> {
+    console.log('🔄 Admin: Attempting token refresh...');
+    
+    // Check if we have refresh token in localStorage (for cross-domain scenarios)
+    const storedRefreshToken = this.getRefreshToken();
+    const requestBody = storedRefreshToken ? { refreshToken: storedRefreshToken } : {};
+    
+    if (storedRefreshToken) {
+      console.log('🔄 Admin: Using stored refresh token for cross-domain compatibility');
+    } else {
+      console.log('🍪 Admin: No stored refresh token, relying on HttpOnly cookies');
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Admin: Token refresh successful');
+        
+        if (data.data?.token) {
+          localStorage.setItem('authToken', data.data.token);
+          
+          // Store new refresh token if provided
+          if (data.data.refreshToken) {
+            localStorage.setItem('refreshToken', data.data.refreshToken);
+            console.log('🔄 Admin: New refresh token stored');
+          }
+          
+          return data.data.token;
+        }
+      } else {
+        console.log('❌ Admin: Token refresh failed:', response.status);
+        return null;
+      }
+    } catch (error) {
+      console.error('❌ Admin: Token refresh error:', error);
+      return null;
+    }
+    
+    return null;
+  }
+
+  private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
     const url = `${API_BASE_URL}${endpoint}`;
     
     const authToken = this.getAuthToken();
@@ -22,12 +78,62 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
+      
+      // Handle token refresh if needed (but NOT for refresh-token endpoint itself)
+      if (response.status === 401 && authToken && !endpoint.includes('/refresh-token')) {
+        console.log('🔄 Admin: Access token expired, attempting refresh...');
+        
+        // Use shared refresh promise to prevent concurrent refreshes
+        if (!this.refreshPromise) {
+          this.refreshPromise = this.refreshAuthToken();
+        }
+
+        try {
+          const newAccessToken = await this.refreshPromise;
+          this.refreshPromise = null; // Reset after completion
+
+          if (newAccessToken) {
+            // Retry original request with new token
+            config.headers = {
+              ...config.headers,
+              Authorization: `Bearer ${newAccessToken}`
+            };
+            console.log('🔄 Admin: Retrying request with new token');
+            const retryResponse = await fetch(url, config);
+            const retryData = await retryResponse.json();
+            
+            if (retryResponse.ok) {
+              console.log('✅ Admin: Request successful after token refresh');
+              return retryData;
+            } else {
+              console.log('❌ Admin: Request failed even after token refresh');
+              throw new Error(retryData.message || `HTTP error! status: ${retryResponse.status}`);
+            }
+          } else {
+            // Refresh failed - clear tokens and logout
+            console.log('❌ Admin: Token refresh failed, clearing tokens');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            throw new Error('Authentication failed - please log in again');
+          }
+        } catch (refreshError) {
+          this.refreshPromise = null; // Reset on error
+          console.log('❌ Admin: Token refresh failed, clearing tokens');
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          throw new Error('Authentication failed - please log in again');
+        }
+      }
+      
       const data = await response.json();
       
       if (!response.ok) {
-        // If token is invalid, clear it from localStorage
+        // If still getting 401 after refresh attempt, clear tokens
         if (response.status === 401) {
           localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
         }
         throw new Error(data.message || `HTTP error! status: ${response.status}`);

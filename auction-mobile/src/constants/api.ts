@@ -1,8 +1,8 @@
 // API Base URL - Update this to match your backend URL
-export const API_BASE_URL = 'https://hygiene-efforts-contained-zambia.trycloudflare.com/api';
+export const API_BASE_URL = 'https://assisted-determination-transparent-begins.trycloudflare.com/api';
 
 // Base URL for images (without /api)
-export const IMAGE_BASE_URL = 'https://hygiene-efforts-contained-zambia.trycloudflare.com';
+export const IMAGE_BASE_URL = 'https://assisted-determination-transparent-begins.trycloudflare.com';
 
 // Utility function to construct full image URLs
 export const getFullImageUrl = (imagePath: string): string => {

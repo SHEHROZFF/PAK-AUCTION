@@ -6,9 +6,10 @@ import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { store } from './src/store';
 import { useAppDispatch, useAppSelector } from './src/store';
-import { loadStoredAuth } from './src/store/slices/authSlice';
+import { loadStoredAuth, logoutUser } from './src/store/slices/authSlice';
 import { fetchSettings } from './src/store/slices/settingsSlice';
 import { pushNotificationService } from './src/services/pushNotificationService';
+import authEventBus from './src/services/authEventBus';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
 
@@ -31,6 +32,7 @@ const AppContent: React.FC = () => {
   const dispatch = useAppDispatch();
   const { isAuthenticated, isAppLoading, error } = useAppSelector((state) => state.auth);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+  const [isHandlingAuthFailure, setIsHandlingAuthFailure] = useState(false);
 
   useEffect(() => {
     // Load stored authentication data and settings on app start
@@ -50,6 +52,43 @@ const AppContent: React.FC = () => {
     
     loadInitialData();
   }, [dispatch]);
+
+  // Set up authentication event listeners
+  useEffect(() => {
+    console.log('🔧 Setting up authentication event listeners...');
+    
+    const unsubscribeAuthFailure = authEventBus.subscribe('AUTH_FAILURE', () => {
+      // Prevent multiple simultaneous AUTH_FAILURE handling
+      if (isHandlingAuthFailure) {
+        console.log('🚨 AppContent: AUTH_FAILURE already being handled, ignoring...');
+        return;
+      }
+      
+      console.log('🚨 AppContent: Received AUTH_FAILURE event, performing silent logout...');
+      setIsHandlingAuthFailure(true);
+      
+      // Show user-friendly message
+      Toast.show({
+        type: 'error',
+        text1: 'Session Expired',
+        text2: 'Please login again to continue.',
+        position: 'top',
+        visibilityTime: 4000,
+      });
+      
+      // Dispatch SILENT logout action (don't call backend API since tokens are expired)
+      dispatch(logoutUser({ silent: true })).finally(() => {
+        // Reset flag after logout completes
+        setTimeout(() => setIsHandlingAuthFailure(false), 1000);
+      });
+    });
+    
+    // Cleanup event listeners on unmount
+    return () => {
+      console.log('🔧 Cleaning up authentication event listeners...');
+      unsubscribeAuthFailure();
+    };
+  }, [dispatch, isHandlingAuthFailure]);
 
   // Initialize push notifications when user is authenticated
   useEffect(() => {
